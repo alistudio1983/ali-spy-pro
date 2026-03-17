@@ -92,7 +92,7 @@ export default function App() {
   const scanMarket = async () => {
     setLoading(true); setError(""); setResults([]); setScanStep(1);
     const keyToUse = geminiKey || apiKey || "";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keyToUse}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${keyToUse}`;
     const today = new Date().toISOString().split('T')[0];
 
     const promptText = `You are an expert e-commerce market analyst specializing in dropshipping and COD (Cash on Delivery) markets in the Arab world. Today is ${today}.
