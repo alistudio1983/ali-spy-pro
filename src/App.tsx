@@ -3,7 +3,7 @@ import { Search, Globe, Target, Camera, TrendingUp, Loader2, AlertTriangle, Hear
 
 
 // يتم توفير مفتاح Gemini تلقائياً من بيئة التشغيل
-const apiKey = "";
+const apiKey = "AIzaSyBnlk1x-wgkuHYHlnxbdQXUB7h1_4uudzQ";
 
 
 // دالة جلب الصور (Pexels أو الذكاء الاصطناعي)
@@ -172,7 +172,7 @@ export default function App() {
 
 
     const keyToUse = apiKey || "";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${keyToUse}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keyToUse}`;
 
 
     const promptText = `أنت خوارزمية ذكية متخصصة في تحليل التجارة الإلكترونية وتعمل كأداة تجسس (Spy Tool) مشابهة لـ SellTheTrend.
