@@ -121,6 +121,8 @@ export default function App() {
     };
     let attempt = 0;
     const delays = [1000, 2000, 4000, 8000, 16000];
+      let success = false;
+      while (attempt < 5 && !success) {
       try {
         const res = await fetch(url, {
           method: "POST",
