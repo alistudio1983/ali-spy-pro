@@ -114,39 +114,13 @@ export default function App() {
     setError("");
     setResults([]);
     const keyToUse = geminiKey || apiKey || "";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keyToUse}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${keyToUse}`;
     const promptText = `أنت خوارزمية ذكية متخصصة في تحليل التجارة الإلكترونية وتعمل كأداة تجسس (Spy Tool) مشابهة لـ SellTheTrend. قم بتحليل السوق في "${market}" وتحديداً في نيتش "${niche}". استخرج ${productCount} منتجات فعلية، محددة جداً، ورابحة (Winning Products) حالياً في هذا السوق بنظام الدفع عند الاستلام (COD). يجب أن تقوم بمحاكاة وتقدير الأرقام بذكاء كما تفعل أدوات التجسس الكبرى.`;
     const payload = {
       contents: [{ parts: [{ text: promptText }] }],
       systemInstruction: { parts: [{ text: "رد فقط بكائن JSON يحتوي على مصفوفة products. لا تكتب أي نصوص أخرى." }] },
       generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            products: {
-              type: "ARRAY",
-              items: {
-                type: "OBJECT",
-                properties: {
-                  product_name: { type: "STRING" },
-                  category: { type: "STRING" },
-                  image_keyword: { type: "STRING" },
-                  why_winning: { type: "STRING" },
-                  target_audience: { type: "STRING" },
-                  cost_price: { type: "NUMBER" },
-                  selling_price: { type: "NUMBER" },
-                  profit_margin: { type: "NUMBER" },
-                  saturation: { type: "STRING" },
-                  engagement_likes: { type: "STRING" },
-                  engagement_comments: { type: "STRING" },
-                  fb_search_query: { type: "STRING" },
-                  aliexpress_query: { type: "STRING" }
-                }
-              }
-            }
-          }
-        }
+        responseMimeType: "application/json"
       }
     };
     let attempt = 0;
