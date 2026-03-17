@@ -92,7 +92,7 @@ export default function App() {
   const scanMarket = async () => {
     setLoading(true); setError(""); setResults([]); setScanStep(1);
     const keyToUse = geminiKey || apiKey || "";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${keyToUse}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${keyToUse}`;
     const today = new Date().toISOString().split('T')[0];
 
     const promptText = `You are an expert e-commerce market analyst specializing in dropshipping and COD (Cash on Delivery) markets in the Arab world. Today is ${today}.
@@ -113,7 +113,7 @@ product_name (Arabic), product_name_en (English), category (Arabic), image_keywo
 No text outside JSON.`;
 
     setScanStep(2);
-    const payload = { contents: [{ parts: [{ text: promptText }] }], generationConfig: { responseMimeType: "application/json" } };
+    const payload = { contents: [{ parts: [{ text: promptText }] }], generationConfig: { thinkingConfig: { thinkingBudget: 0 }, responseMimeType: "application/json" } };
     let attempt = 0; const delays = [1000, 2000, 4000, 8000, 16000]; let success = false;
     while (attempt < 5 && !success) {
       try {
