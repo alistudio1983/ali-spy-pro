@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Globe, Target, Camera, TrendingUp, Loader2, AlertTriangle, Heart, MessageCircle, Activity, ShoppingBag, Video, Play } from 'lucide-react';
 
 // يتم توفير مفتاح Gemini تلقائياً من بيئة التشغيل
-const apiKey = "AIzaSyCtlqW-_cbnfrCcortRIZ079V5GJx7Qx-0";
+const apiKey = "";
 
 // دالة جلب الصور (Pexels أو Google أو الذكاء الاصطناعي)
 const fetchImage = async (keyword, pexelsKey) => {
@@ -113,7 +113,7 @@ export default function App() {
   const [market, setMarket] = useState("المملكة العربية السعودية (KSA)");
   const [niche, setNiche] = useState("منتجات حل المشاكل اليومية");
   const [productCount, setProductCount] = useState(4);
-  const [pexelsKey, setPexelsKey] = useState("");
+  const [geminiKey, setGeminiKey] = useState("");   const [pexelsKey, setPexelsKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
@@ -125,7 +125,7 @@ export default function App() {
     setLoading(true);
     setError("");
     setResults([]);
-    const keyToUse = apiKey || "";
+    const keyToUse = geminiKey || apiKey || "";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${keyToUse}`;
     const promptText = `أنت خوارزمية ذكية متخصصة في تحليل التجارة الإلكترونية وتعمل كأداة تجسس (Spy Tool) مشابهة لـ SellTheTrend. قم بتحليل السوق في "${market}" وتحديداً في نيتش "${niche}". استخرج ${productCount} منتجات فعلية، محددة جداً، ورابحة (Winning Products) حالياً في هذا السوق بنظام الدفع عند الاستلام (COD). يجب أن تقوم بمحاكاة وتقدير الأرقام بذكاء كما تفعل أدوات التجسس الكبرى.`;
     const payload = {
@@ -239,6 +239,10 @@ export default function App() {
                 <label className="block text-sm font-bold text-slate-600 mb-2">عدد المنتجات المطلوبة &nbsp; <span className="text-indigo-600">{productCount} منتجات</span></label>
                 <input type="range" min={1} max={10} value={productCount} onChange={(e) => setProductCount(parseInt(e.target.value))} className="w-full accent-indigo-600 cursor-pointer" />
                 <div className="flex justify-between text-xs text-slate-400 mt-1"><span>1</span><span>10</span></div>
+              </div>
+                            <div>
+                <label className="block text-sm font-bold text-slate-600 mb-2">Gemini API Key (مطلوب)</label>
+                <input type="password" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" placeholder="أدخل مفتاح Gemini هنا..." value={geminiKey} onChange={(e) => setGeminiKey(e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-600 mb-2">Pexels API (للصور الحقيقية)</label>
