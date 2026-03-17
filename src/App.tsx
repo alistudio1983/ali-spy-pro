@@ -114,7 +114,7 @@ export default function App() {
     setError("");
     setResults([]);
     const keyToUse = geminiKey || apiKey || "";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${keyToUse}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${keyToUse}`;
     const promptText = `أنت خوارزمية ذكية متخصصة في تحليل التجارة الإلكترونية وتعمل كأداة تجسس (Spy Tool) مشابهة لـ SellTheTrend. قم بتحليل السوق في "${market}" وتحديداً في نيتش "${niche}". استخرج ${productCount} منتجات فعلية، محددة جداً، ورابحة (Winning Products) حالياً في هذا السوق بنظام الدفع عند الاستلام (COD). يجب أن تقوم بمحاكاة وتقدير الأرقام بذكاء كما تفعل أدوات التجسس الكبرى. رد فقط بكائن JSON بالشكل {"products": [...]} حيث كل منتج يحتوي على: product_name, category, image_keyword, why_winning, target_audience, cost_price (NUMBER), selling_price (NUMBER), profit_margin (NUMBER), saturation, engagement_likes, engagement_comments, fb_search_query, aliexpress_query. لا تكتب اي نصوص خارج JSON.`;
     const payload = {
       contents: [{ parts: [{ text: promptText }] }]
