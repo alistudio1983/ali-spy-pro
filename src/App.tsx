@@ -101,7 +101,7 @@ export default function App() {
   const [market, setMarket] = useState("المملكة العربية السعودية (KSA)");
   const [niche, setNiche] = useState("منتجات حل المشاكل اليومية");
   const [productCount, setProductCount] = useState(4);
-  const [geminiKey, setGeminiKey] = useState("");   const [pexelsKey, setPexelsKey] = useState("");
+  const [geminiKey, setGeminiKey] = useState(localStorage.getItem("geminiKey") || "");   const [pexelsKey, setPexelsKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
@@ -230,7 +230,7 @@ export default function App() {
               </div>
                             <div>
                 <label className="block text-sm font-bold text-slate-600 mb-2">Gemini API Key (مطلوب)</label>
-                <input type="password" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" placeholder="أدخل مفتاح Gemini هنا..." value={geminiKey} onChange={(e) => setGeminiKey(e.target.value)} />
+                <input type="password" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" placeholder="أدخل مفتاح Gemini هنا..." value={geminiKey} onChange={(e) => { setGeminiKey(e.target.value); localStorage.setItem("geminiKey", e.target.value); }} />
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-600 mb-2">Pexels API (للصور الحقيقية)</label>
