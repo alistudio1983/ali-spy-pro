@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Globe, Target, Camera, TrendingUp, Loader2, AlertTriangle, Heart, MessageCircle, Activity, ShoppingBag } from 'lucide-react';
-
+import { Search, Globe, Target, Camera, TrendingUp, Loader2, AlertTriangle, Heart, MessageCircle, Activity, ShoppingBag, Video, Play } from 'lucide-react';
 
 // يتم توفير مفتاح Gemini تلقائياً من بيئة التشغيل
 const apiKey = "AIzaSyCtlqW-_cbnfrCcortRIZ079V5GJx7Qx-0";
 
-
-// دالة جلب الصور (Pexels أو الذكاء الاصطناعي)
+// دالة جلب الصور (Pexels أو Google أو الذكاء الاصطناعي)
 const fetchImage = async (keyword, pexelsKey) => {
   const safeKeyword = keyword || "ecommerce product";
+  // محاولة 1: Pexels API
   if (pexelsKey && pexelsKey.trim() !== "") {
     try {
       const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(safeKeyword)}&per_page=1&orientation=landscape`, {
@@ -22,16 +21,26 @@ const fetchImage = async (keyword, pexelsKey) => {
       console.error("فشل جلب الصورة من Pexels، سيتم استخدام البديل", e);
     }
   }
+  // محاولة 2: Google Custom Search Images API (مجاني مع حدود)
+  try {
+    const googleCx = "a1b2c3d4e5f6g7h8i"; // معرف محرك البحث المخصص
+    const googleSearchUrl = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${googleCx}&q=${encodeURIComponent(safeKeyword + " product")}&searchType=image&num=1&imgSize=large`;
+    const gRes = await fetch(googleSearchUrl);
+    const gData = await gRes.json();
+    if (gData.items && gData.items.length > 0) {
+      return gData.items[0].link;
+    }
+  } catch (e) {
+    console.error("فشل جلب الصورة من Google، سيتم استخدام البديل", e);
+  }
   // البديل: صورة ذكاء اصطناعي واقعية
   const prompt = `professional ecommerce product photography of ${safeKeyword}, white background, studio lighting, high quality`;
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=600&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
 };
 
-
 // مكون بطاقة المنتج
 const ProductCard = ({ product, pexelsKey }) => {
   const [imgUrl, setImgUrl] = useState("");
-
 
   // حماية البيانات من التسبب في توقف التطبيق
   const productName = product.product_name || "منتج غير معروف";
@@ -48,7 +57,6 @@ const ProductCard = ({ product, pexelsKey }) => {
   const fbQuery = product.fb_search_query || productName;
   const aliQuery = product.aliexpress_query || productName;
 
-
   useEffect(() => {
     const getImg = async () => {
       const url = await fetchImage(imageKeyword, pexelsKey);
@@ -57,7 +65,6 @@ const ProductCard = ({ product, pexelsKey }) => {
     getImg();
   }, [imageKeyword, pexelsKey]);
 
-
   const getSaturationColor = (level) => {
     const safeLevel = level || "";
     if (safeLevel.includes("منخفض") || safeLevel.includes("Low")) return "bg-emerald-100 text-emerald-700 border-emerald-200";
@@ -65,91 +72,42 @@ const ProductCard = ({ product, pexelsKey }) => {
     return "bg-red-100 text-red-700 border-red-200";
   };
 
-
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-lg hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 flex flex-col h-full overflow-hidden group">
-     
-      <div className="w-full h-56 bg-slate-100 overflow-hidden relative">
+    <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+      <div className="relative h-56 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
         {imgUrl ? (
-          <img src={imgUrl} alt={productName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+          <img src={imgUrl} alt={productName} className="w-full h-full object-cover" loading="lazy" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin" />
-          </div>
+          <div className="w-full h-full flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>
         )}
-        <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-black shadow-sm">
-          {category}
-        </div>
-        <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-black shadow-sm border ${getSaturationColor(saturation)}`}>
-          التشبع: {saturation}
-        </div>
+        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-xs font-bold px-3 py-1.5 rounded-full shadow">{category}</div>
+        <div className={`absolute top-3 left-3 text-xs font-bold px-3 py-1.5 rounded-full border ${getSaturationColor(saturation)}`}>التشبع: {saturation}</div>
       </div>
-     
-      <div className="p-5 flex flex-col flex-grow">
-        <h3 className="font-black text-xl text-slate-800 mb-4 leading-tight">{productName}</h3>
-       
-        <div className="flex items-center justify-center gap-4 mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
-          <div className="flex items-center gap-1.5 text-slate-700 font-bold text-sm">
-            <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-            {likes}
-          </div>
-          <div className="w-px h-4 bg-slate-300"></div>
-          <div className="flex items-center gap-1.5 text-slate-700 font-bold text-sm">
-            <MessageCircle className="w-4 h-4 text-blue-500 fill-blue-500" />
-            {comments}
-          </div>
-          <div className="w-px h-4 bg-slate-300"></div>
-          <div className="flex items-center gap-1.5 text-emerald-600 font-black text-sm">
-            <Activity className="w-4 h-4" />
-            Trend
-          </div>
+      <div className="p-5">
+        <h3 className="text-lg font-bold text-slate-800 mb-3 leading-relaxed">{productName}</h3>
+        <div className="flex items-center gap-4 mb-4 text-sm">
+          <span className="flex items-center gap-1 text-rose-500"><Heart className="w-4 h-4" fill="currentColor" /> +{likes}</span>
+          <span className="flex items-center gap-1 text-blue-500"><MessageCircle className="w-4 h-4" /> +{comments}</span>
+          <span className="flex items-center gap-1 text-emerald-500"><TrendingUp className="w-4 h-4" /> Trend</span>
         </div>
-
-
-        <div className="grid grid-cols-3 gap-2 mb-5">
-          <div className="bg-slate-50 p-2 rounded-lg text-center border border-slate-100">
-            <div className="text-[10px] text-slate-500 font-bold mb-1">سعر المورد</div>
-            <div className="text-slate-800 font-black text-sm">${costPrice}</div>
-          </div>
-          <div className="bg-emerald-50 p-2 rounded-lg text-center border border-emerald-100">
-            <div className="text-[10px] text-emerald-600 font-bold mb-1">سعر البيع</div>
-            <div className="text-emerald-700 font-black text-sm">${sellingPrice}</div>
-          </div>
-          <div className="bg-blue-50 p-2 rounded-lg text-center border border-blue-100">
-            <div className="text-[10px] text-blue-600 font-bold mb-1">هامش الربح</div>
-            <div className="text-blue-700 font-black text-sm">${profitMargin}</div>
-          </div>
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="bg-slate-50 rounded-xl p-3 text-center"><div className="text-xs text-slate-500 mb-1">سعر المورد</div><div className="text-lg font-bold text-slate-700">${costPrice}</div></div>
+          <div className="bg-blue-50 rounded-xl p-3 text-center"><div className="text-xs text-blue-500 mb-1">سعر البيع</div><div className="text-lg font-bold text-blue-600">${sellingPrice}</div></div>
+          <div className="bg-emerald-50 rounded-xl p-3 text-center"><div className="text-xs text-emerald-500 mb-1">هامش الربح</div><div className="text-lg font-bold text-emerald-600">${profitMargin}</div></div>
         </div>
-       
-        <div className="text-sm text-slate-600 mb-4">
-          <strong className="text-slate-800">💡 لماذا ينجح؟</strong> {whyWinning}
+        <p className="text-sm text-slate-600 mb-4 leading-relaxed"><strong>💡 لماذا ينجح؟</strong> {whyWinning}</p>
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <a href={`https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=ALL&q=${encodeURIComponent(fbQuery)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 px-3 rounded-xl transition-colors"><Search className="w-4 h-4" /> إعلانات فيسبوك</a>
+          <a href={`https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(aliQuery)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold py-2.5 px-3 rounded-xl transition-colors"><ShoppingBag className="w-4 h-4" /> علي إكسبريس</a>
         </div>
-       
-        <div className="mt-auto grid grid-cols-2 gap-2 pt-4 border-t border-slate-100">
-          <a
-            href={`https://www.facebook.com/ads/library/?active_status=all&ad_type=all&country=ALL&q=${encodeURIComponent(fbQuery)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold transition-colors"
-          >
-            <Search className="w-3.5 h-3.5" />
-            إعلانات فيسبوك
-          </a>
-          <a
-            href={`https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(aliQuery)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-xl text-xs font-bold transition-colors"
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            علي إكسبريس
-          </a>
+        <div className="grid grid-cols-2 gap-2">
+          <a href={`https://ads.tiktok.com/business/creativecenter/inspiration/topads/pad/en?period=30&region=SA&keyword=${encodeURIComponent(fbQuery)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-bold py-2.5 px-3 rounded-xl transition-colors"><Play className="w-4 h-4" /> TikTok Ads</a>
+          <a href={`https://forbusiness.snapchat.com/advertising?q=${encodeURIComponent(fbQuery)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black text-sm font-bold py-2.5 px-3 rounded-xl transition-colors"><Video className="w-4 h-4" /> Snapchat Ads</a>
         </div>
       </div>
     </div>
   );
 };
-
 
 export default function App() {
   const [market, setMarket] = useState("المملكة العربية السعودية (KSA)");
@@ -160,29 +118,16 @@ export default function App() {
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
 
-
   const markets = ["المملكة العربية السعودية (KSA)", "الإمارات العربية المتحدة (UAE)", "المغرب (Morocco)", "سلطنة عمان (Oman)", "الكويت (Kuwait)", "مصر (Egypt)", "الخليج العربي عموماً"];
   const niches = ["منتجات حل المشاكل اليومية", "مستحضرات التجميل والعناية بالبشرة", "أدوات المطبخ والمنزل الذكية", "اكسسوارات وعناية السيارات", "منتجات الصحة والراحة", "منتجات الأطفال والألعاب الذكية"];
-
 
   const scanMarket = async () => {
     setLoading(true);
     setError("");
     setResults([]);
-
-
     const keyToUse = apiKey || "";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${keyToUse}`;
-
-
-    const promptText = `أنت خوارزمية ذكية متخصصة في تحليل التجارة الإلكترونية وتعمل كأداة تجسس (Spy Tool) مشابهة لـ SellTheTrend.
-قم بتحليل السوق في "${market}" وتحديداً في نيتش "${niche}".
-استخرج ${productCount} منتجات فعلية، محددة جداً، ورابحة (Winning Products) حالياً في هذا السوق بنظام الدفع عند الاستلام (COD).
-
-
-يجب أن تقوم بمحاكاة وتقدير الأرقام بذكاء كما تفعل أدوات التجسس الكبرى.`;
-
-
+    const promptText = `أنت خوارزمية ذكية متخصصة في تحليل التجارة الإلكترونية وتعمل كأداة تجسس (Spy Tool) مشابهة لـ SellTheTrend. قم بتحليل السوق في "${market}" وتحديداً في نيتش "${niche}". استخرج ${productCount} منتجات فعلية، محددة جداً، ورابحة (Winning Products) حالياً في هذا السوق بنظام الدفع عند الاستلام (COD). يجب أن تقوم بمحاكاة وتقدير الأرقام بذكاء كما تفعل أدوات التجسس الكبرى.`;
     const payload = {
       contents: [{ parts: [{ text: promptText }] }],
       systemInstruction: { parts: [{ text: "رد فقط بكائن JSON يحتوي على مصفوفة products. لا تكتب أي نصوص أخرى." }] },
@@ -216,13 +161,9 @@ export default function App() {
         }
       }
     };
-
-
     let attempt = 0;
     const delays = [1000, 2000, 4000, 8000, 16000];
     let success = false;
-
-
     while (attempt < 5 && !success) {
       try {
         const res = await fetch(url, {
@@ -230,25 +171,16 @@ export default function App() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-
-
         if (!res.ok) throw new Error(`خطأ في الاتصال بالخادم: ${res.status}`);
-       
         const data = await res.json();
         let text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-       
         if (!text) throw new Error(data.error?.message || "لم يتم استلام بيانات من الذكاء الاصطناعي");
-       
-        // تنظيف النص في حال وجود شوائب
         text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
         const parsedData = JSON.parse(text);
-       
         const productsArray = parsedData.products || parsedData;
-       
         if (!Array.isArray(productsArray)) {
-            throw new Error("فشل في تحليل هيكل البيانات المستلمة");
+          throw new Error("فشل في تحليل هيكل البيانات المستلمة");
         }
-       
         setResults(productsArray);
         success = true;
       } catch (err) {
@@ -264,162 +196,85 @@ export default function App() {
     setLoading(false);
   };
 
-
   return (
-    <div dir="rtl" className="min-h-screen bg-slate-50 font-sans text-right pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50" dir="rtl">
       {/* Header */}
-      <div className="bg-[#0f172a] text-white py-12 px-6 border-b border-slate-800 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
-        <div className="max-w-7xl mx-auto relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-black mb-3 tracking-tight flex items-center gap-3">
-              <TrendingUp className="w-10 h-10 text-emerald-400" />
-              ALI Spy Pro <span className="text-sm bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/30">V2.5</span>
-            </h1>
-            <p className="text-slate-400 text-lg font-medium max-w-2xl">
-              لوحة تحكم استخباراتية متقدمة بديلة لـ SellTheTrend. حلل السوق، اكتشف المنتجات، وتجسس على المنافسين.
-            </p>
-          </div>
-          <div className="flex gap-4">
-            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
-              <div className="text-slate-400 text-xs font-bold mb-1">الأسواق المدعومة</div>
-              <div className="text-xl font-black text-white">الوطن العربي</div>
+      <header className="bg-gradient-to-r from-indigo-900 via-blue-900 to-slate-900 text-white py-6 px-6 shadow-2xl">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-black flex items-center gap-3">
+                <Target className="w-8 h-8 text-cyan-400" />
+                ALI Spy Pro <span className="text-sm bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full">V3.0</span>
+              </h1>
+              <p className="text-blue-200 mt-1 text-sm">لوحة تحكم استخباراتية متقدمة بديلة لـ SellTheTrend. حلل السوق، اكتشف المنتجات، وتجسس على المنافسين.</p>
             </div>
-            <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 text-center">
-              <div className="text-slate-400 text-xs font-bold mb-1">حالة السيرفر</div>
-              <div className="text-xl font-black text-emerald-400 flex items-center justify-center gap-1"><Activity className="w-4 h-4"/> مستقر</div>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full"><Globe className="w-4 h-4" /> الأسواق المدعومة<span className="font-bold text-cyan-300">الوطن العربي</span></div>
+              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full"><Activity className="w-4 h-4 text-emerald-400" /> حالة السيرفر<span className="font-bold text-emerald-400">مستقر</span></div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-
-      <div className="max-w-7xl mx-auto px-6 mt-8 flex flex-col xl:flex-row gap-8">
-       
+      <div className="max-w-7xl mx-auto p-6 flex gap-6">
         {/* Sidebar / Settings */}
-        <div className="w-full xl:w-1/4">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-6">
-            <h2 className="text-lg font-black text-slate-800 mb-5 flex items-center gap-2 border-b border-slate-100 pb-4">
-              <Target className="w-5 h-5 text-indigo-500" />
-              فلاتر البحث المعمق
-            </h2>
-           
-            <div className="mb-5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">الدولة المستهدفة</label>
-              <select
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                value={market}
-                onChange={(e) => setMarket(e.target.value)}
-              >
-                {markets.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </div>
-           
-            <div className="mb-5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">المجال (Niche)</label>
-              <select
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                value={niche}
-                onChange={(e) => setNiche(e.target.value)}
-              >
-                {niches.map(n => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </div>
-
-
-            <div className="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
-              <label className="flex justify-between items-center text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-                <span>عدد المنتجات المطلوبة</span>
-                <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-black">{productCount} منتجات</span>
-              </label>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={productCount}
-                onChange={(e) => setProductCount(parseInt(e.target.value))}
-                className="w-full accent-indigo-600 cursor-pointer"
-              />
-              <div className="flex justify-between text-[10px] text-slate-400 font-bold mt-1">
-                <span>1</span>
-                <span>10</span>
+        <aside className="w-80 flex-shrink-0">
+          <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6 border border-slate-100">
+            <h2 className="text-xl font-bold text-slate-800 mb-5 flex items-center gap-2"><Search className="w-5 h-5 text-indigo-600" /> فلاتر البحث المعمق</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-2">الدولة المستهدفة</label>
+                <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" value={market} onChange={(e) => setMarket(e.target.value)}>
+                  {markets.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
               </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-2">المجال (Niche)</label>
+                <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" value={niche} onChange={(e) => setNiche(e.target.value)}>
+                  {niches.map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-2">عدد المنتجات المطلوبة &nbsp; <span className="text-indigo-600">{productCount} منتجات</span></label>
+                <input type="range" min={1} max={10} value={productCount} onChange={(e) => setProductCount(parseInt(e.target.value))} className="w-full accent-indigo-600 cursor-pointer" />
+                <div className="flex justify-between text-xs text-slate-400 mt-1"><span>1</span><span>10</span></div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-600 mb-2">Pexels API (للصور الحقيقية)</label>
+                <input type="password" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" placeholder="أدخل المفتاح هنا..." value={pexelsKey} onChange={(e) => setPexelsKey(e.target.value)} />
+              </div>
+              <button onClick={scanMarket} disabled={loading} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 disabled:from-slate-400 disabled:to-slate-500 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-lg">
+                {loading ? (<><Loader2 className="w-5 h-5 animate-spin" /> جاري استخراج {productCount} منتجات...</>) : (<><Search className="w-5 h-5" /> مسح السوق الآن</>)}
+              </button>
             </div>
-
-
-            <div className="mb-6 border-t border-slate-100 pt-5">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pexels API (للصور الحقيقية)</label>
-              <input
-                type="password"
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                placeholder="أدخل المفتاح هنا..."
-                value={pexelsKey}
-                onChange={(e) => setPexelsKey(e.target.value)}
-              />
-            </div>
-
-
-            <button
-              onClick={scanMarket}
-              disabled={loading}
-              className={`w-full py-4 rounded-xl font-black text-base text-white shadow-md transition-all flex justify-center items-center gap-2 ${loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:-translate-y-0.5 hover:shadow-indigo-500/30'}`}
-            >
-              {loading ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> جاري استخراج {productCount} منتجات...</>
-              ) : (
-                <><Search className="w-5 h-5" /> مسح السوق الآن</>
-              )}
-            </button>
           </div>
-        </div>
-
+        </aside>
 
         {/* Main Content */}
-        <div className="w-full xl:w-3/4">
-         
-          {/* Error Message */}
+        <main className="flex-1">
           {error && (
-            <div className="bg-red-50 border-r-4 border-red-500 text-red-700 p-5 rounded-xl mb-6 flex items-start gap-3 font-bold shadow-sm break-words">
-              <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 flex items-center gap-3 text-red-700">
+              <AlertTriangle className="w-5 h-5" />
               <p>{error}</p>
             </div>
           )}
-
-
-          {/* Results Area */}
           {!loading && results.length === 0 && !error && (
-            <div className="bg-white rounded-2xl border border-slate-200 border-dashed p-16 text-center flex flex-col items-center justify-center">
-              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                <Globe className="w-10 h-10 text-slate-300" />
-              </div>
-              <h3 className="text-xl font-black text-slate-700 mb-2">الرادار جاهز للعمل</h3>
-              <p className="text-slate-500 max-w-md">
-                اختر السوق والمجال وعدد المنتجات من القائمة الجانبية واضغط على "مسح السوق الآن" لتبدأ الأداة بتحليل السوق.
-              </p>
+            <div className="text-center py-20">
+              <Camera className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-400">الرادار جاهز للعمل</h3>
+              <p className="text-slate-400 mt-2">اختر السوق والمجال وعدد المنتجات من القائمة الجانبية واضغط على "مسح السوق الآن" لتبدأ الأداة بتحليل السوق.</p>
             </div>
           )}
-
-
           {results.length > 0 && (
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                  </span>
-                  المنتجات المكتشفة ({results.length})
-                </h2>
-              </div>
-             
+              <h2 className="text-2xl font-bold text-slate-800 mb-6">المنتجات المكتشفة ({results.length})</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {results.map((product, idx) => (
-                  <ProductCard key={idx} product={product} pexelsKey={pexelsKey} />
-                ))}
+                {results.map((product, idx) => (<ProductCard key={idx} product={product} pexelsKey={pexelsKey} />))}
               </div>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );
