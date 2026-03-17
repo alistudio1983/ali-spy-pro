@@ -21,22 +21,10 @@ const fetchImage = async (keyword, pexelsKey) => {
       console.error("فشل جلب الصورة من Pexels، سيتم استخدام البديل", e);
     }
   }
-  // محاولة 2: Google Custom Search Images API (مجاني مع حدود)
-  try {
-    const googleCx = "a1b2c3d4e5f6g7h8i"; // معرف محرك البحث المخصص
-    const googleSearchUrl = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${googleCx}&q=${encodeURIComponent(safeKeyword + " product")}&searchType=image&num=1&imgSize=large`;
-    const gRes = await fetch(googleSearchUrl);
-    const gData = await gRes.json();
-    if (gData.items && gData.items.length > 0) {
-      return gData.items[0].link;
-    }
-  } catch (e) {
-    console.error("فشل جلب الصورة من Google، سيتم استخدام البديل", e);
-  }
-  // البديل: صورة ذكاء اصطناعي واقعية
-  const prompt = `professional ecommerce product photography of ${safeKeyword}, white background, studio lighting, high quality`;
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=600&height=400&nologo=true&seed=${Math.floor(Math.random() * 100000)}`;
-};
+    // البديل: صور حقيقية من Unsplash
+    return `https://loremflickr.com/600/400/${encodeURIComponent(safeKeyword)},product`;
+
+  };
 
 // مكون بطاقة المنتج
 const ProductCard = ({ product, pexelsKey }) => {
