@@ -130,7 +130,7 @@ export default function App() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        if (!res.ok) throw new Error(`خطأ في الاتصال بالخادم: ${res.status}`);
+        if (!res.ok) { const eb = await res.text(); throw new Error(`خطأ في الاتصال بالخادم: ${res.status}: ${eb}`); }
         const data = await res.json();
         let text = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (!text) throw new Error(data.error?.message || "لم يتم استلام بيانات من الذكاء الاصطناعي");
