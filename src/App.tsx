@@ -3,7 +3,7 @@ import { Search, Globe, Target, Camera, TrendingUp, Loader2, AlertTriangle, Hear
 
 
 // يتم توفير مفتاح Gemini تلقائياً من بيئة التشغيل
-const apiKey = "AIzaSyBnlk1x-wgkuHYHlnxbdQXUB7h1_4uudzQ";
+const apiKey = "AIzaSyCtlqW-_cbnfrCcortRIZ079V5GJx7Qx-0";
 
 
 // دالة جلب الصور (Pexels أو الذكاء الاصطناعي)
