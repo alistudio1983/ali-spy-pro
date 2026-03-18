@@ -74,11 +74,11 @@ export default function App() {
     setLoading(true); setError(""); setResults([]); setScanStep(1);
     const keyToUse = geminiKey || apiKey;
     if (!keyToUse) { setError("يرجى إدخال Gemini API Key"); setLoading(false); return; }
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keyToUse}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${keyToUse}`;
     const today = new Date().toISOString().split('T')[0];
     const prompt = `You are an expert e-commerce analyst for Arab dropshipping markets. Today is ${today}. Find ${productCount} REAL winning products in "${market}" for "${niche}". Products must exist on AliExpress and have active Facebook ads. Return ONLY valid JSON: {"products":[...]} Each product: product_name (Arabic), product_name_en (English), category (Arabic), why_winning (Arabic 2 sentences), cost_price (USD number), selling_price (USD number), profit_margin (USD number), saturation (Arabic), fb_search_query, aliexpress_query (English), data_source, verification_status (Arabic), active_ad_examples (string[]), competitor_count (number), ad_spend_estimate (number), target_audience (Arabic). No text outside JSON.`;
     setScanStep(2);
-    const payload = { contents: [{ parts: [{ text: prompt }] }], tools: [{ google_search: {} }], generationConfig: { responseMimeType: "application/json" } };
+    const payload = { contents: [{ parts: [{ text: prompt }] }],  generationConfig: { responseMimeType: "application/json" } };
     try {
       const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error(await res.text());
