@@ -3,22 +3,7 @@ import { Search, Globe, Target, Camera, TrendingUp, Loader2, AlertTriangle, Hear
 
 const apiKey = "";
 
-const fetchImage = async (keyword: string, pexelsKey: string) => {
-  const safeKeyword = keyword || "ecommerce product";
-  if (pexelsKey && pexelsKey.trim() !== "") {
-    try {
-      const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(safeKeyword)}&per_page=1&orientation=landscape`, {
-        headers: { Authorization: pexelsKey }
-      });
-      const data = await res.json();
-      if (data.photos && data.photos.length > 0) return data.photos[0].src.large;
-    } catch (e) { console.error("Pexels error", e); }
-  }
-  return `https://picsum.photos/seed/${encodeURIComponent(safeKeyword)}/600/400`;
-};
-
-const ProductCard = ({ product, pexelsKey, market }: any) => {
-  const [imgUrl, setImgUrl] = useState("");
+const ProductCard = ({ product, market }: any) => {
   const p = product;
   const name = p.product_name || "منتج غير معروف";
   const cat = p.category || "عام";
@@ -34,41 +19,63 @@ const ProductCard = ({ product, pexelsKey, market }: any) => {
   const ads = p.active_ad_examples || [];
   const rivals = p.competitor_count || "N/A";
   const spend = p.ad_spend_estimate || "N/A";
+  const imgUrl = p.image_url || "";
   const cc = market.includes('KSA') ? 'SA' : market.includes('UAE') ? 'AE' : market.includes('Morocco') ? 'MA' : market.includes('Oman') ? 'OM' : market.includes('Kuwait') ? 'KW' : market.includes('Egypt') ? 'EG' : 'SA';
 
-  useEffect(() => { fetchImage(p.image_keyword || name, pexelsKey).then(setImgUrl); }, [p.image_keyword, name, pexelsKey]);
+  const [imgSrc, setImgSrc] = useState(imgUrl);
+  const handleImgError = () => {
+    setImgSrc(`https://picsum.photos/seed/${encodeURIComponent(p.product_name_en || name)}/600/400`);
+  };
 
-  const satColor = (s: string) => s.includes('منخفض') || s.includes('Low') ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : s.includes('متوسط') || s.includes('Medium') ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-red-100 text-red-700 border-red-200';
+  const satColor = (s: string) =>
+    s.includes('منخفض') || s.includes('Low') ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+    s.includes('متوسط') || s.includes('Medium') ? 'bg-amber-100 text-amber-700 border-amber-200' :
+    'bg-red-100 text-red-700 border-red-200';
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-      <div className="relative h-56 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
-        {imgUrl ? <img src={imgUrl} alt={name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>}
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-xs font-bold px-3 py-1.5 rounded-full shadow">{cat}</div>
-        <div className={`absolute top-3 left-3 text-xs font-bold px-3 py-1.5 rounded-full border ${satColor(sat)}`}>{sat}</div>
-        {src && <div className="absolute bottom-3 right-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1"><CheckCircle className="w-3 h-3" />{src}</div>}
+    <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+      <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200">
+        {imgSrc ? <img src={imgSrc} alt={name} className="w-full h-48 object-cover" onError={handleImgError} referrerPolicy="no-referrer" /> :
+        <div className="w-full h-48 flex items-center justify-center"><Camera className="w-12 h-12 text-slate-300" /></div>}
+        <div className="absolute top-2 right-2 flex gap-1">
+          <span className="bg-white/90 backdrop-blur text-xs px-2 py-1 rounded-full font-bold text-slate-700">{cat}</span>
+        </div>
+        <div className="absolute top-2 left-2">
+          <span className={`text-xs px-2 py-1 rounded-full border font-bold ${satColor(sat)}`}>{sat}</span>
+        </div>
+        {src && <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
+          <span className="bg-emerald-500 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1"><CheckCircle className="w-3 h-3" />{src}</span>
+        </div>}
       </div>
-      <div className="p-5">
-        <h3 className="text-lg font-bold text-slate-800 mb-2">{name}</h3>
-        {verify && <div className="text-xs text-emerald-600 font-bold mb-2 flex items-center gap-1"><CheckCircle className="w-3 h-3" />{verify}</div>}
-        <div className="flex gap-3 mb-3 text-xs text-slate-500">
-          <span>منافسين: <b>{rivals}</b></span>
-          <span>إنفاق إعلاني: <b>{spend}</b></span>
-        </div>
+      <div className="p-4">
+        <h3 className="font-bold text-lg text-slate-800 mb-1 text-right">{name}</h3>
+        {verify && <p className="text-xs text-emerald-600 flex items-center justify-end gap-1 mb-2"><CheckCircle className="w-3 h-3" />{verify}</p>}
+        <p className="text-xs text-slate-500 text-right mb-3">منافسين: <strong>{rivals}</strong> &nbsp; إنفاق إعلاني: <strong>{spend}</strong></p>
         <div className="grid grid-cols-3 gap-2 mb-3">
-          <div className="bg-slate-50 rounded-xl p-3 text-center"><div className="text-xs text-slate-500 mb-1">سعر المورد</div><div className="text-lg font-bold text-slate-700">${cost}</div></div>
-          <div className="bg-blue-50 rounded-xl p-3 text-center"><div className="text-xs text-blue-500 mb-1">سعر البيع</div><div className="text-lg font-bold text-blue-600">${sell}</div></div>
-          <div className="bg-emerald-50 rounded-xl p-3 text-center"><div className="text-xs text-emerald-500 mb-1">هامش الربح</div><div className="text-lg font-bold text-emerald-600">${margin}</div></div>
+          <div className="bg-slate-50 rounded-xl p-2 text-center">
+            <p className="text-[10px] text-slate-400">سعر المورد</p>
+            <p className="font-bold text-slate-700">${cost}</p>
+          </div>
+          <div className="bg-indigo-50 rounded-xl p-2 text-center">
+            <p className="text-[10px] text-indigo-400">سعر البيع</p>
+            <p className="font-bold text-indigo-700">${sell}</p>
+          </div>
+          <div className="bg-emerald-50 rounded-xl p-2 text-center">
+            <p className="text-[10px] text-emerald-400">هامش الربح</p>
+            <p className="font-bold text-emerald-700">${margin}</p>
+          </div>
         </div>
-        <p className="text-sm text-slate-600 mb-3"><strong>لماذا ينجح؟</strong> {why}</p>
-        {ads.length > 0 && <div className="mb-3 p-3 bg-blue-50 rounded-xl"><p className="text-xs font-bold text-blue-700 mb-1">إعلانات نشطة:</p>{ads.map((a: string, i: number) => <p key={i} className="text-xs text-blue-600">{a}</p>)}</div>}
+        <p className="text-sm text-slate-600 text-right mb-3"><strong>لماذا ينجح؟</strong> {why}</p>
+        {ads.length > 0 && <div className="mb-3"><p className="text-xs font-bold text-slate-500 text-right mb-1">إعلانات نشطة:</p>
+          {ads.map((a: string, i: number) => <p key={i} className="text-xs text-slate-500 text-right">• {a}</p>)}
+        </div>}
         <div className="grid grid-cols-2 gap-2 mb-2">
-          <a href={`https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=${cc}&q=${encodeURIComponent(fbQ)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 px-3 rounded-xl"><Search className="w-4 h-4" /> إعلانات فيسبوك</a>
-          <a href={`https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(aliQ)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold py-2.5 px-3 rounded-xl"><ShoppingBag className="w-4 h-4" /> علي إكسبريس</a>
+          <a href={`https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=${cc}&q=${encodeURIComponent(fbQ)}`} target="_blank" rel="noreferrer" className="bg-blue-800 text-white text-xs py-2 px-3 rounded-xl text-center flex items-center justify-center gap-1 hover:bg-blue-900"><Search className="w-3 h-3" />إعلانات فيسبوك</a>
+          <a href={`https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(aliQ)}`} target="_blank" rel="noreferrer" className="bg-orange-500 text-white text-xs py-2 px-3 rounded-xl text-center flex items-center justify-center gap-1 hover:bg-orange-600"><ShoppingBag className="w-3 h-3" />علي إكسبريس</a>
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <a href={`https://ads.tiktok.com/business/creativecenter/inspiration/topads/pad/en?period=30&region=${cc}&keyword=${encodeURIComponent(fbQ)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-black hover:bg-gray-800 text-white text-sm font-bold py-2.5 px-3 rounded-xl"><Play className="w-4 h-4" /> TikTok Ads</a>
-          <a href={`https://forbusiness.snapchat.com/advertising?q=${encodeURIComponent(fbQ)}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black text-sm font-bold py-2.5 px-3 rounded-xl"><Video className="w-4 h-4" /> Snapchat Ads</a>
+          <a href={`https://ads.tiktok.com/business/creativecenter/inspiration/topads/pad/en?period=30&region=${cc}&keyword=${encodeURIComponent(fbQ)}`} target="_blank" rel="noreferrer" className="bg-slate-900 text-white text-xs py-2 px-3 rounded-xl text-center flex items-center justify-center gap-1 hover:bg-black"><Play className="w-3 h-3" />TikTok Ads</a>
+          <a href={`https://forbusiness.snapchat.com/advertising?q=${encodeURIComponent(fbQ)}`} target="_blank" rel="noreferrer" className="bg-yellow-400 text-slate-900 text-xs py-2 px-3 rounded-xl text-center flex items-center justify-center gap-1 hover:bg-yellow-500"><Camera className="w-3 h-3" />Snapchat Ads</a>
         </div>
       </div>
     </div>
@@ -80,7 +87,6 @@ export default function App() {
   const [niche, setNiche] = useState("منتجات حل المشاكل اليومية");
   const [productCount, setProductCount] = useState(4);
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem("geminiKey") || "");
-  const [pexelsKey, setPexelsKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [error, setError] = useState("");
@@ -94,24 +100,18 @@ export default function App() {
     const keyToUse = geminiKey || apiKey || "";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${keyToUse}`;
     const today = new Date().toISOString().split('T')[0];
-
-    const promptText = `You are an expert e-commerce market analyst specializing in dropshipping and COD (Cash on Delivery) markets in the Arab world. Today is ${today}.
-
-YOUR TASK: Analyze the REAL current market in "${market}" for the niche "${niche}" and identify ${productCount} ACTUALLY WINNING products.
-
+    const promptText = `You are an expert e-commerce market analyst specializing in dropshipping and COD markets in the Arab world. Today is ${today}.
+TASK: Find ${productCount} REAL winning products in "${market}" for niche "${niche}".
 CRITICAL RULES:
-1. ONLY suggest products that ACTUALLY EXIST on AliExpress right now with the EXACT English search query.
-2. ONLY suggest products with REAL ACTIVE Facebook/Instagram ads running in ${market} RIGHT NOW.
-3. Products must be suitable for COD dropshipping (price under $150, good margins).
-4. Base analysis on REAL market trends in ${market} for 2025-2026.
-5. DO NOT invent fictional products. Every product must be real and available on AliExpress.
-6. Provide REALISTIC prices based on actual AliExpress and market prices.
-7. active_ad_examples should describe real ad formats (UGC video, product demo, etc.)
-
+1. Products MUST actually exist on AliExpress with exact search query.
+2. Products MUST have active Facebook/Instagram ads in ${market}.
+3. Suitable for COD dropshipping (under $150, good margins).
+4. image_url: You MUST provide a REAL product image URL. Search AliExpress for the product and provide the actual image URL from ae01.alicdn.com or i.alicdn.com CDN. The URL format is usually like: https://ae01.alicdn.com/kf/XXXXXXX.jpg - provide the REAL image URL of the actual product.
+5. If you cannot find a real AliExpress image URL, use a real Amazon product image URL from m.media-amazon.com.
+6. NEVER use placeholder or fake URLs. Only real product image URLs.
 RESPOND ONLY with JSON: {"products": [...]} where each product has:
-product_name (Arabic), product_name_en (English), category (Arabic), image_keyword (English), why_winning (Arabic detailed), cost_price (NUMBER USD), selling_price (NUMBER USD), profit_margin (NUMBER), saturation (Arabic), fb_search_query (EXACT query for Facebook Ad Library), aliexpress_query (EXACT English query for AliExpress), data_source, verification_status (Arabic), active_ad_examples (string array), competitor_count, ad_spend_estimate, target_audience (Arabic).
+product_name (Arabic), product_name_en (English), category (Arabic), image_url (REAL product image URL from ae01.alicdn.com or m.media-amazon.com), why_winning (Arabic), cost_price (NUMBER), selling_price (NUMBER), profit_margin (NUMBER), saturation (Arabic), fb_search_query, aliexpress_query (English), data_source, verification_status (Arabic), active_ad_examples (string array), competitor_count, ad_spend_estimate, target_audience (Arabic).
 No text outside JSON.`;
-
     setScanStep(2);
     const payload = { contents: [{ parts: [{ text: promptText }] }], generationConfig: { thinkingConfig: { thinkingBudget: 0 }, responseMimeType: "application/json" } };
     let attempt = 0; const delays = [1000, 2000, 4000, 8000, 16000]; let success = false;
@@ -141,59 +141,57 @@ No text outside JSON.`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50" dir="rtl">
-      <header className="bg-gradient-to-r from-indigo-900 via-blue-900 to-slate-900 text-white py-6 px-6 shadow-2xl">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-black flex items-center gap-3"><Target className="w-8 h-8 text-cyan-400" /> ALI Spy Pro <span className="text-sm bg-cyan-500/20 text-cyan-300 px-3 py-1 rounded-full">V3.0 Real Data</span></h1>
-            <p className="text-blue-200 mt-1 text-sm">أداة تجسس حقيقية - منتجات موجودة فعلا على AliExpress ويتم الترويج لها في Facebook Ads</p>
-          </div>
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full"><Globe className="w-4 h-4" /> <span className="font-bold text-cyan-300">بيانات حقيقية</span></div>
-            <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full"><Activity className="w-4 h-4 text-emerald-400" /> <span className="font-bold text-emerald-400">مستقر</span></div>
-          </div>
+      <div className="max-w-7xl mx-auto p-4">
+        <div className="text-center mb-8 pt-6">
+          <h1 className="text-3xl font-black text-slate-800">ALI Spy Pro <span className="text-indigo-600">V3.1</span> <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">Real Images</span></h1>
+          <p className="text-slate-500 text-sm mt-2">صور حقيقية من AliExpress و Amazon - منتجات يتم الترويج لها في Facebook Ads</p>
         </div>
-      </header>
-      <div className="max-w-7xl mx-auto p-6 flex gap-6">
-        <aside className="w-80 flex-shrink-0">
-          <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-6 border border-slate-100">
-            <h2 className="text-xl font-bold text-slate-800 mb-5 flex items-center gap-2"><Search className="w-5 h-5 text-indigo-600" /> فلاتر البحث</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-slate-600 mb-2">الدولة المستهدفة</label>
-                <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700" value={market} onChange={e => setMarket(e.target.value)}>
-                  {markets.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
+        <div className="flex flex-col lg:flex-row gap-6">
+          <main className="flex-1">
+            {loading && <div className="bg-white rounded-2xl shadow p-6 mb-6"><div className="flex items-center justify-center gap-4">
+              {steps.map((s, i) => <div key={i} className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${i < scanStep ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'}`}>{i < scanStep ? '✓' : i+1}</div>
+                <span className="text-sm text-slate-600">{s}</span>
+                {i < 3 && <div className="w-8 h-0.5 bg-slate-200"></div>}
+              </div>)}
+            </div></div>}
+            {error && <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 text-red-700 text-sm">{error}</div>}
+            {!loading && results.length === 0 && !error && <div className="bg-white rounded-2xl shadow p-12 text-center">
+              <Camera className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-700 mb-2">الرادار جاهز</h3>
+              <p className="text-slate-500">اختر السوق والمجال واضغط "مسح السوق الآن"</p>
+            </div>}
+            {results.length > 0 && <div>
+              <h2 className="text-2xl font-black text-center text-slate-800 mb-2">المنتجات المكتشفة ({results.length})</h2>
+              <p className="text-center text-slate-500 text-sm mb-6">صور حقيقية من AliExpress/Amazon - تحقق عبر الروابط</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {results.map((p, i) => <ProductCard key={i} product={p} market={market} />)}
               </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-600 mb-2">المجال (Niche)</label>
-                <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700" value={niche} onChange={e => setNiche(e.target.value)}>
-                  {niches.map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
+            </div>}
+          </main>
+          <aside className="w-full lg:w-80 shrink-0">
+            <div className="bg-white rounded-2xl shadow p-6 sticky top-4">
+              <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><Search className="w-5 h-5" />فلاتر البحث</h2>
+              <div className="space-y-4">
+                <div><label className="text-sm font-bold text-slate-600 block mb-1">الدولة المستهدفة</label>
+                  <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700" value={market} onChange={e => setMarket(e.target.value)}>
+                    {markets.map(m => <option key={m} value={m}>{m}</option>)}
+                  </select></div>
+                <div><label className="text-sm font-bold text-slate-600 block mb-1">المجال (Niche)</label>
+                  <select className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700" value={niche} onChange={e => setNiche(e.target.value)}>
+                    {niches.map(n => <option key={n} value={n}>{n}</option>)}
+                  </select></div>
+                <div><label className="text-sm font-bold text-slate-600 block mb-1">عدد المنتجات <span className="text-indigo-600 font-black">{productCount}</span></label>
+                  <input type="range" min={1} max={10} value={productCount} onChange={e => setProductCount(parseInt(e.target.value))} className="w-full accent-indigo-600" /></div>
+                <div><label className="text-sm font-bold text-slate-600 block mb-1">Gemini API Key</label>
+                  <input type="password" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" value={geminiKey} onChange={e => { setGeminiKey(e.target.value); localStorage.setItem("geminiKey", e.target.value); }} /></div>
+                <button onClick={scanMarket} disabled={loading} className="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:bg-slate-400 flex items-center justify-center gap-2">
+                  {loading ? <><Loader2 className="w-5 h-5 animate-spin" />جاري البحث...</> : <><Search className="w-5 h-5" />مسح السوق الآن</>}
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-600 mb-2">عدد المنتجات <span className="text-indigo-600">{productCount}</span></label>
-                <input type="range" min={1} max={10} value={productCount} onChange={e => setProductCount(parseInt(e.target.value))} className="w-full accent-indigo-600" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-600 mb-2">Gemini API Key</label>
-                <input type="password" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" value={geminiKey} onChange={e => { setGeminiKey(e.target.value); localStorage.setItem("geminiKey", e.target.value); }} />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-600 mb-2">Pexels API (للصور)</label>
-                <input type="password" className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" value={pexelsKey} onChange={e => setPexelsKey(e.target.value)} />
-              </div>
-              <button onClick={scanMarket} disabled={loading} className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 disabled:from-slate-400 disabled:to-slate-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg">
-                {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> جاري البحث...</> : <><Search className="w-5 h-5" /> مسح السوق الآن</>}
-              </button>
             </div>
-          </div>
-        </aside>
-        <main className="flex-1">
-          {loading && <div className="bg-white rounded-2xl p-6 mb-6 shadow"><div className="flex items-center gap-2">{steps.map((s, i) => <div key={i} className="flex items-center gap-1"><div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i < scanStep ? 'bg-emerald-500 text-white' : i === scanStep ? 'bg-indigo-600 text-white animate-pulse' : 'bg-slate-200'}`}>{i < scanStep ? '✓' : i+1}</div><span className="text-xs">{s}</span>{i < 3 && <div className={`w-6 h-0.5 ${i < scanStep ? 'bg-emerald-500' : 'bg-slate-200'}`}/>}</div>)}</div></div>}
-          {error && <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 flex items-center gap-3 text-red-700"><AlertTriangle className="w-5 h-5" /><p>{error}</p></div>}
-          {!loading && results.length === 0 && !error && <div className="text-center py-20"><Camera className="w-16 h-16 text-slate-300 mx-auto mb-4" /><h3 className="text-xl font-bold text-slate-400">الرادار جاهز</h3><p className="text-slate-400 mt-2">اختر السوق والمجال واضغط "مسح السوق الآن"</p><p className="text-xs text-emerald-600 mt-4 font-bold">V3.0 - منتجات حقيقية موجودة على AliExpress ويتم الإعلان عنها فعلا</p></div>}
-          {results.length > 0 && <div><h2 className="text-2xl font-bold text-slate-800 mb-2">المنتجات المكتشفة ({results.length})</h2><p className="text-sm text-emerald-600 mb-6 font-bold">منتجات حقيقية - تحقق منها عبر روابط Facebook Ad Library و AliExpress</p><div className="grid grid-cols-1 md:grid-cols-2 gap-6">{results.map((p, i) => <ProductCard key={i} product={p} pexelsKey={pexelsKey} market={market} />)}</div></div>}
-        </main>
+          </aside>
+        </div>
       </div>
     </div>
   );
