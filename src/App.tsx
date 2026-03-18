@@ -4,7 +4,7 @@ import { Search, Globe, Target, Camera, TrendingUp, Loader2, AlertTriangle, Hear
 const apiKey = "";
 
 // Search for product image using Gemini with Google Search grounding
-const searchProductImage = async (query: string, geminiKey: string): Promise<string> => {
+const skipSearchProductImage = async (query: string, geminiKey: string): Promise<string> => {
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
     const payload = {
@@ -91,7 +91,7 @@ const ProductCard = ({ product, market, geminiKey }: any) => {
       const keyToUse = geminiKey || apiKey;
       if (keyToUse) {
         const searchQuery = aliQ || nameEn || name;
-        const searchImg = await searchProductImage(searchQuery, keyToUse);
+        const searchImg = await skipSearchProductImage(searchQuery, keyToUse);
         if (!cancelled && searchImg) {
           const ok2 = await testImage(searchImg);
           if (!cancelled && ok2) { setImgSrc(searchImg); setImgLoading(false); return; }
@@ -101,7 +101,7 @@ const ProductCard = ({ product, market, geminiKey }: any) => {
       // Step 3: Fallback - Use product-relevant keywords for placeholder
       if (!cancelled) {
         const keywords = (nameEn || aliQ || 'product').replace(/[^a-zA-Z0-9 ]/g, '').trim().split(' ').slice(0, 3).join('+');
-        setImgSrc(`https://image.pollinations.ai/prompt/${encodeURIComponent('Professional product photo of ' + (nameEn || aliQ || 'product') + ', white background, studio lighting')}?width=600&height=400&nologo=true`);
+        setImgSrc(`https://placehold.co/600x400/4f46e5/ffffff?text=${encodeURIComponent(nameEn || aliQ || 'Product')}`);
         setImgLoading(false);
       }
     };
@@ -113,7 +113,7 @@ const ProductCard = ({ product, market, geminiKey }: any) => {
     if (!imgFailed) {
       setImgFailed(true);
       const keywords = (nameEn || aliQ || 'ecommerce').replace(/[^a-zA-Z0-9 ]/g, '').trim().split(' ').slice(0, 2).join('+');
-      setImgSrc(`https://image.pollinations.ai/prompt/${encodeURIComponent('Product photo ' + (nameEn || aliQ || 'item') + ' white background')}?width=600&height=400&nologo=true`);
+      setImgSrc(`https://placehold.co/600x400/6366f1/ffffff?text=${encodeURIComponent(nameEn || aliQ || 'Item')}`);
     }
   };
 
