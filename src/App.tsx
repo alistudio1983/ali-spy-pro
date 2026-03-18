@@ -1,7 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Target, Camera, Loader2, AlertTriangle, Activity, CheckCircle } from 'lucide-react';
 const apiKey = "";
-const ProductCard = ({ product, market }: any) => {
+
+const fetchImageUrl = async (query: string, key: string): Promise<string> => {
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`;
+    const res = await fetch(url, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `Find a real product image URL for: ${query}. Return ONLY a single direct image URL (jpg/png/webp) from a real website like amazon.com, aliexpress.com, or any ecommerce site. The URL must end with an image extension or be a direct image link. Return ONLY the URL, nothing else.` }] }],
+        tools: [{ google_search: {} }],
+        generationConfig: { maxOutputTokens: 200 }
+      })
+    });
+    if (!res.ok) return '';
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.map((p:any) => p.text || '').join('') || '';
+    const urlMatch = text.match(/https?:\/\/[^\s"'<>]+\.(jpg|jpeg|png|webp|gif)[^\s"'<>]*/i) || text.match(/https?:\/\/[^\s"'<>]+/i);
+    return urlMatch ? urlMatch[0] : '';
+  } catch { return ''; }
+};
+
+const ProductCard = ({ product, market, geminiKey }: any) => {
   const p = product;
   const name = p.product_name || "unknown";
   const nameEn = p.product_name_en || "";
@@ -19,12 +39,22 @@ const ProductCard = ({ product, market }: any) => {
   const rivals = p.competitor_count || "N/A";
   const spend = p.ad_spend_estimate || "N/A";
   const audience = p.target_audience || "";
-  const imgFromAI = p.image_search_url || "";
   const cc = market.includes('KSA') ? 'SA' : market.includes('UAE') ? 'AE' : market.includes('Morocco') ? 'MA' : market.includes('Oman') ? 'OM' : market.includes('Kuwait') ? 'KW' : market.includes('Egypt') ? 'EG' : 'SA';
   const productLabel = nameEn || aliQ || 'product';
   const fallbackImg = `https://placehold.co/600x400/4f46e5/ffffff?text=${encodeURIComponent(productLabel)}`;
-  const [imgSrc, setImgSrc] = useState(imgFromAI || fallbackImg);
+  const [imgSrc, setImgSrc] = useState(fallbackImg);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [searching, setSearching] = useState(true);
+
+  useEffect(() => {
+    const key = geminiKey || apiKey;
+    if (!key) { setSearching(false); return; }
+    fetchImageUrl(productLabel + ' product', key).then(url => {
+      if (url) setImgSrc(url);
+      setSearching(false);
+    });
+  }, [productLabel, geminiKey]);
+
   const satColor = (s: string) =>
     s.includes('Low') || s.includes('منخفض') ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
     s.includes('High') || s.includes('مرتفع') ? 'bg-red-100 text-red-700 border-red-200' :
@@ -32,7 +62,7 @@ const ProductCard = ({ product, market }: any) => {
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300">
       <div className="relative h-52 bg-gradient-to-br from-indigo-50 to-purple-50">
-        {!imgLoaded && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-400" /></div>}
+        {(!imgLoaded || searching) && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-400" />{searching && <span className="text-xs text-indigo-400 mr-2">جاري البحث عن الصورة...</span>}</div>}
         <img src={imgSrc} alt={name} className={`w-full h-full object-cover transition-opacity ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setImgLoaded(true)} onError={() => { setImgSrc(fallbackImg); setImgLoaded(true); }} />
         <div className="absolute top-2 right-2"><span className={`text-xs px-2 py-1 rounded-full border ${satColor(sat)}`}>{sat}</span></div>
@@ -78,7 +108,7 @@ export default function App() {
     if (!keyToUse) { setError("يرجى إدخال Gemini API Key"); setLoading(false); return; }
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${keyToUse}`;
     const today = new Date().toISOString().split('T')[0];
-    const prompt = `You are an expert e-commerce analyst for Arab dropshipping markets. Today is ${today}. Find ${productCount} REAL winning products in "${market}" for "${niche}". Products must exist on AliExpress and have active Facebook ads. Return ONLY valid JSON: {"products":[...]} Each product: product_name (Arabic), product_name_en (English), category (Arabic), why_winning (Arabic 2 sentences), cost_price (USD number), selling_price (USD number), profit_margin (USD number), saturation (Arabic: منخفض/متوسط/مرتفع), fb_search_query, aliexpress_query (English), data_source (e.g. AliExpress, Facebook Ads Library), verification_status (Arabic), active_ad_examples (string[] with real facebook ads library URLs), competitor_count (number), ad_spend_estimate (string like "$500-$1000"), target_audience (Arabic), image_search_url (a real product image URL from aliexpress or amazon - use format https://ae01.alicdn.com/kf/... for AliExpress products). IMPORTANT: For image_search_url, provide a real AliExpress CDN image URL for each product. No text outside JSON.`;
+    const prompt = `You are an expert e-commerce analyst for Arab dropshipping markets. Today is ${today}. Find ${productCount} REAL winning products in "${market}" for "${niche}". Products must exist on AliExpress and have active Facebook ads. Return ONLY valid JSON: {"products":[...]} Each product: product_name (Arabic), product_name_en (English), category (Arabic), why_winning (Arabic 2 sentences), cost_price (USD number), selling_price (USD number), profit_margin (USD number), saturation (Arabic: منخفض/متوسط/مرتفع), fb_search_query, aliexpress_query (English), data_source, verification_status (Arabic), active_ad_examples (string[]), competitor_count (number), ad_spend_estimate (string), target_audience (Arabic). No text outside JSON.`;
     setScanStep(2);
     const payload = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } };
     try {
@@ -118,7 +148,7 @@ export default function App() {
               <button onClick={scanMarket} disabled={loading} className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:shadow-lg transition-all disabled:opacity-50">{loading ? <><Loader2 className="w-5 h-5 animate-spin inline mr-2"/>جاري البحث...</> : 'مسح السوق الآن'}</button>
             </div>
           </div>
-          {results.length > 0 && <div className="flex-1"><h2 className="text-2xl font-bold text-slate-700 mb-4">المنتجات المكتشفة ({results.length})</h2><div className="grid grid-cols-1 md:grid-cols-2 gap-6">{results.map((p,i) => <ProductCard key={i} product={p} market={market}/>)}</div></div>}
+          {results.length > 0 && <div className="flex-1"><h2 className="text-2xl font-bold text-slate-700 mb-4">المنتجات المكتشفة ({results.length})</h2><div className="grid grid-cols-1 md:grid-cols-2 gap-6">{results.map((p,i) => <ProductCard key={i} product={p} market={market} geminiKey={geminiKey}/>)}</div></div>}
         </div>
       </div>
     </div>
