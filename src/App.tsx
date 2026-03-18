@@ -22,7 +22,7 @@ const ProductCard = ({ product, market }: any) => {
   const imgUrl = p.image_url || "";
   const cc = market.includes('KSA') ? 'SA' : market.includes('UAE') ? 'AE' : market.includes('Morocco') ? 'MA' : market.includes('Oman') ? 'OM' : market.includes('Kuwait') ? 'KW' : market.includes('Egypt') ? 'EG' : 'SA';
 
-  const [imgSrc, setImgSrc] = useState(imgUrl);
+  const [imgSrc, setImgSrc] = useState("");   useEffect(() => { if (!imgUrl) { setImgSrc(`https://picsum.photos/seed/${encodeURIComponent(p.product_name_en || name)}/600/400`); return; } const img = new Image(); img.onload = () => setImgSrc(imgUrl); img.onerror = () => setImgSrc(`https://picsum.photos/seed/${encodeURIComponent(p.product_name_en || name)}/600/400`); img.src = imgUrl; }, [imgUrl]);;
   const handleImgError = () => {
     setImgSrc(`https://picsum.photos/seed/${encodeURIComponent(p.product_name_en || name)}/600/400`);
   };
