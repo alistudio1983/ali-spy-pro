@@ -101,7 +101,7 @@ const ProductCard = ({ product, market, geminiKey }: any) => {
       // Step 3: Fallback - Use product-relevant keywords for placeholder
       if (!cancelled) {
         const keywords = (nameEn || aliQ || 'product').replace(/[^a-zA-Z0-9 ]/g, '').trim().split(' ').slice(0, 3).join('+');
-        setImgSrc(`https://source.unsplash.com/600x400/?${keywords}+product`);
+        setImgSrc(`https://image.pollinations.ai/prompt/${encodeURIComponent('Professional product photo of ' + (nameEn || aliQ || 'product') + ', white background, studio lighting')}?width=600&height=400&nologo=true`);
         setImgLoading(false);
       }
     };
@@ -113,7 +113,7 @@ const ProductCard = ({ product, market, geminiKey }: any) => {
     if (!imgFailed) {
       setImgFailed(true);
       const keywords = (nameEn || aliQ || 'ecommerce').replace(/[^a-zA-Z0-9 ]/g, '').trim().split(' ').slice(0, 2).join('+');
-      setImgSrc(`https://picsum.photos/seed/${encodeURIComponent(keywords)}/600/400`);
+      setImgSrc(`https://image.pollinations.ai/prompt/${encodeURIComponent('Product photo ' + (nameEn || aliQ || 'item') + ' white background')}?width=600&height=400&nologo=true`);
     }
   };
 
