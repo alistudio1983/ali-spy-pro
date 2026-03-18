@@ -3,25 +3,26 @@ import { Search, Globe, Target, Camera, TrendingUp, Loader2, AlertTriangle, Hear
 
 const apiKey = "";
 
-const scrapeAliExpressImage = async (query: string): Promise<string> => {
+const searchProductImage = async (query: string, geminiKey: string): Promise<string> => {
   try {
-    const url = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.aliexpress.com/wholesale?SearchText=' + encodeURIComponent(query))}`;
-    const res = await fetch(url);
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+    const payload = {
+      contents: [{ parts: [{ text: `Find a real product image URL for: "${query}". Search AliExpress or Amazon for this product. Return ONLY the direct image URL (https://...) ending in .jpg, .png, or .webp. The URL must be from one of these domains: ae01.alicdn.com, ae-pic-a1.aliexpress-media.com, i.alicdn.com, m.media-amazon.com, images-na.ssl-images-amazon.com. Return ONLY the URL, nothing else.` }] }],
+      tools: [{ google_search: {} }],
+      generationConfig: { maxOutputTokens: 200 }
+    };
+    const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    if (!res.ok) return '';
     const data = await res.json();
-    const html = data.contents || '';
-    const imgMatches = html.match(/\/\/ae-pic-a1\.aliexpress-media\.com\/kf\/[^"'\s]+\.(?:jpg|png|webp)/gi)
-      || html.match(/\/\/ae01\.alicdn\.com\/kf\/[^"'\s]+\.(?:jpg|png|webp)/gi)
-      || html.match(/\/\/i\.alicdn\.com\/[^"'\s]+\.(?:jpg|png|webp)/gi);
-    if (imgMatches && imgMatches.length > 0) {
-      return 'https:' + imgMatches[0];
-    }
-    return '';
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    const urlMatch = text.match(/https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)/i);
+    return urlMatch ? urlMatch[0] : '';
   } catch {
     return '';
   }
 };
 
-const ProductCard = ({ product, market }: any) => {
+const ProductCard = ({ product, market, geminiKey }: any) => {
   const p = product;
   const name = p.product_name || "منتج غير معروف";
   const cat = p.category || "عام";
@@ -52,11 +53,13 @@ const ProductCard = ({ product, market }: any) => {
         const ok = await new Promise<boolean>(r => { img.onload = () => r(true); img.onerror = () => r(false); img.src = imgUrl; });
         if (!cancelled && ok) { setImgSrc(imgUrl); setImgLoading(false); return; }
       }
-      const aliImg = await scrapeAliExpressImage(p.aliexpress_query || p.product_name_en || name);
-      if (!cancelled && aliImg) {
-        const img2 = new Image();
-        const ok2 = await new Promise<boolean>(r => { img2.onload = () => r(true); img2.onerror = () => r(false); img2.src = aliImg; });
-        if (!cancelled && ok2) { setImgSrc(aliImg); setImgLoading(false); return; }
+      if (geminiKey) {
+        const searchImg = await searchProductImage(p.aliexpress_query || p.product_name_en || name, geminiKey);
+        if (!cancelled && searchImg) {
+          const img2 = new Image();
+          const ok2 = await new Promise<boolean>(r => { img2.onload = () => r(true); img2.onerror = () => r(false); img2.src = searchImg; });
+          if (!cancelled && ok2) { setImgSrc(searchImg); setImgLoading(false); return; }
+        }
       }
       if (!cancelled) { setImgSrc(`https://picsum.photos/seed/${encodeURIComponent(p.product_name_en || name)}/600/400`); setImgLoading(false); }
     };
@@ -130,7 +133,7 @@ export default function App() {
     const keyToUse = geminiKey || apiKey || "";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${keyToUse}`;
     const today = new Date().toISOString().split('T')[0];
-    const promptText = `You are an expert e-commerce market analyst specializing in dropshipping and COD markets in the Arab world. Today is ${today}. TASK: Find ${productCount} REAL winning products in "${market}" for niche "${niche}". CRITICAL RULES: 1. Products MUST actually exist on AliExpress with exact search query. 2. Products MUST have active Facebook/Instagram ads in ${market}. 3. Suitable for COD dropshipping (under $150, good margins). 4. image_url: Provide a REAL product image URL from ae01.alicdn.com or m.media-amazon.com CDN. 5. NEVER use placeholder URLs. 6. aliexpress_query MUST be an accurate English search term for the product on AliExpress. RESPOND ONLY with JSON: {"products": [...]} where each product has: product_name (Arabic), product_name_en (English), category (Arabic), image_url (REAL URL), why_winning (Arabic), cost_price (NUMBER), selling_price (NUMBER), profit_margin (NUMBER), saturation (Arabic), fb_search_query, aliexpress_query (English), data_source, verification_status (Arabic), active_ad_examples (string array), competitor_count, ad_spend_estimate, target_audience (Arabic). No text outside JSON.`;
+    const promptText = `You are an expert e-commerce market analyst specializing in dropshipping and COD markets in the Arab world. Today is ${today}. TASK: Find ${productCount} REAL winning products in "${market}" for niche "${niche}". CRITICAL RULES: 1. Products MUST actually exist on AliExpress with exact search query. 2. Products MUST have active Facebook/Instagram ads in ${market}. 3. Suitable for COD dropshipping (under $150, good margins). 4. image_url: Provide a REAL product image URL from ae01.alicdn.com or m.media-amazon.com. 5. aliexpress_query MUST be accurate English search term. RESPOND ONLY with JSON: {"products": [...]} where each product has: product_name (Arabic), product_name_en (English), category (Arabic), image_url (REAL URL), why_winning (Arabic), cost_price (NUMBER), selling_price (NUMBER), profit_margin (NUMBER), saturation (Arabic), fb_search_query, aliexpress_query (English), data_source, verification_status (Arabic), active_ad_examples (string array), competitor_count, ad_spend_estimate, target_audience (Arabic). No text outside JSON.`;
     setScanStep(2);
     const payload = { contents: [{ parts: [{ text: promptText }] }], generationConfig: { thinkingConfig: { thinkingBudget: 0 }, responseMimeType: "application/json" } };
     let attempt = 0;
@@ -166,8 +169,8 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50" dir="rtl">
       <div className="max-w-7xl mx-auto p-4">
         <div className="text-center mb-8 pt-6">
-          <h1 className="text-4xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">ALI Spy Pro <span className="text-lg">V3.2</span> <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full">Real Images</span></h1>
-          <p className="text-slate-500 mt-2">صور حقيقية من AliExpress - منتجات يتم الترويج لها في Facebook Ads</p>
+          <h1 className="text-4xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">ALI Spy Pro <span className="text-lg">V3.3</span> <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full">AI Images</span></h1>
+          <p className="text-slate-500 mt-2">صور حقيقية عبر Gemini Search - منتجات يتم الترويج لها في Facebook Ads</p>
         </div>
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="lg:w-3/4">
@@ -194,10 +197,9 @@ export default function App() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold text-slate-800">المنتجات المكتشفة ({results.length})</h2>
-                  <p className="text-xs text-slate-400">صور حقيقية من AliExpress - تحقق عبر الروابط</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {results.map((p, i) => <ProductCard key={i} product={p} market={market} />)}
+                  {results.map((p, i) => <ProductCard key={i} product={p} market={market} geminiKey={geminiKey} />)}
                 </div>
               </div>
             )}
