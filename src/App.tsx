@@ -99,7 +99,7 @@ export default function App() {
     setLoading(true); setError(''); setResults([]); setScanStep(1);
     const keyToUse = geminiKey || apiKey;
     if (!keyToUse) { setError('يرجى إدخال Gemini API Key'); setLoading(false); return; }
-    const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=' + keyToUse;
+    const baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + keyToUse;
     const today = new Date().toISOString().split('T')[0];
     const cc = market.includes('KSA') ? 'Saudi Arabia' : market.includes('UAE') ? 'UAE' : market.includes('Morocco') ? 'Morocco' : market.includes('Oman') ? 'Oman' : market.includes('Kuwait') ? 'Kuwait' : 'Egypt';
     try {
