@@ -264,7 +264,7 @@ export default function App() {
             مدعوم بـ Gemini 2.0 Flash + Google Search
           </div>
           <h1 className="text-5xl font-black text-white mb-3 tracking-tight">
-            ALI <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">Spy Pro</span>
+            <span className="inline-flex items-center gap-3"><svg width="48" height="48" viewBox="0 0 100 100" className="drop-shadow-lg"><defs><linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a78bfa"/><stop offset="100%" stopColor="#6366f1"/></linearGradient></defs><circle cx="50" cy="50" r="46" fill="url(#lg1)" opacity="0.15"/><circle cx="50" cy="50" r="35" fill="none" stroke="url(#lg1)" strokeWidth="2" opacity="0.4"/><circle cx="50" cy="50" r="24" fill="none" stroke="url(#lg1)" strokeWidth="2" opacity="0.6"/><circle cx="50" cy="50" r="13" fill="none" stroke="url(#lg1)" strokeWidth="2" opacity="0.8"/><circle cx="50" cy="50" r="4" fill="#a78bfa"/><line x1="50" y1="50" x2="75" y2="30" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round"/><circle cx="75" cy="30" r="5" fill="#f59e0b" className="animate-pulse"/></svg><span>ALI</span></span> <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">Spy Pro</span>
             <span className="ml-3 text-2xl bg-gradient-to-r from-amber-400 to-orange-400 text-transparent bg-clip-text">V9.0</span>
           </h1>
           <p className="text-slate-400 text-lg">بيانات حقيقية من Google Search + Facebook Ads + AliExpress</p>
