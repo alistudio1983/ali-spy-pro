@@ -1,6 +1,3 @@
-هذا هو الكود الجديد الكامل بتصميم احترافي وجذاب. انسخه ثم أخبرني:
-
-```tsx
 import React, { useState } from 'react';
 import { Loader2, AlertTriangle, CheckCircle, ExternalLink, TrendingUp, Zap, Globe, Search, Star, BarChart2, DollarSign, Users, ShoppingBag } from 'lucide-react';
 
@@ -292,3 +289,121 @@ export default function App() {
                     onChange={e => setMarket(e.target.value)}
                   >
                     {markets.map(
+              m => <option key={m} value={m}>{m}</option>
+            )}
+          </select>
+        </div>
+
+        <div>
+          <label className="text-slate-400 text-xs font-bold block mb-2">المجال</label>
+          <select
+            className="w-full bg-white/10 border border-white/20 text-white rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            value={niche}
+            onChange={e => setNiche(e.target.value)}
+          >
+            {niches.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className="text-slate-400 text-xs font-bold block mb-2">
+            عدد المنتجات: <span className="text-violet-400 font-black">{productCount}</span>
+          </label>
+          <input type="range" min={1} max={10} value={productCount}
+            onChange={e => setProductCount(+e.target.value)}
+            className="w-full accent-violet-500" />
+        </div>
+
+        <div>
+          <label className="text-slate-400 text-xs font-bold block mb-2">Gemini API Key</label>
+          <input type="password"
+            className="w-full bg-white/10 border border-white/20 text-white rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 placeholder-slate-500"
+            placeholder="AIza..."
+            value={geminiKey}
+            onChange={e => { setGeminiKey(e.target.value); localStorage.setItem('geminiKey', e.target.value); }}
+          />
+        </div>
+
+        <button
+          onClick={scanMarket}
+          disabled={loading}
+          className="w-full py-4 rounded-2xl font-black text-white text-base bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 hover:shadow-xl hover:shadow-violet-500/30 flex items-center justify-center gap-2"
+        >
+          {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> جاري البحث...</> : <><Zap className="w-5 h-5" /> مسح السوق الآن</>}
+        </button>
+
+        <p className="text-slate-500 text-xs text-center">Gemini 2.0 Flash + Google Search</p>
+      </div>
+    </div>
+  </div>
+
+  {/* Loading steps */}
+  {loading && (
+    <div className="lg:col-span-3">
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8">
+        <div className="flex items-center justify-center gap-6 mb-6">
+          {steps.map((s, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${i < scanStep ? 'bg-emerald-500 text-white' : i === scanStep - 1 ? 'bg-violet-500 text-white animate-pulse' : 'bg-white/10 text-slate-400'}`}>
+                {i < scanStep ? <CheckCircle className="w-4 h-4" /> : i + 1}
+              </div>
+              <span className="text-slate-300 text-sm font-medium">{s}</span>
+              {i < steps.length - 1 && <div className="w-8 h-px bg-white/20" />}
+            </div>
+          ))}
+        </div>
+        {statusMsg && (
+          <p className="text-center text-violet-300 text-sm font-medium animate-pulse">{statusMsg}</p>
+        )}
+      </div>
+    </div>
+  )}
+
+  {/* Error */}
+  {error && (
+    <div className="lg:col-span-3">
+      <div className="bg-red-500/10 border border-red-500/30 rounded-3xl p-6 flex items-center gap-3">
+        <AlertTriangle className="w-6 h-6 text-red-400 flex-shrink-0" />
+        <p className="text-red-300 text-sm">{error}</p>
+      </div>
+    </div>
+  )}
+
+  {/* Empty state */}
+  {!loading && !results.length && !error && (
+    <div className="lg:col-span-3">
+      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-16 text-center">
+        <div className="w-20 h-20 rounded-full bg-violet-500/20 flex items-center justify-center mx-auto mb-6">
+          <Search className="w-10 h-10 text-violet-400" />
+        </div>
+        <h3 className="text-white font-black text-2xl mb-3">الرادار جاهز</h3>
+        <p className="text-slate-400 text-base">اختر السوق والمجال واضغط مسح السوق الآن</p>
+      </div>
+    </div>
+  )}
+
+  {/* Results */}
+  {results.length > 0 && (
+    <div className="lg:col-span-3">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-white font-black text-xl flex items-center gap-2">
+          <TrendingUp className="w-6 h-6 text-violet-400" />
+          المنتجات المكتشفة ({results.length})
+        </h2>
+        <span className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+          <CheckCircle className="w-3 h-3" /> بيانات Google حقيقية
+        </span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {results.map((p: any, i: number) => (
+          <ProductCard key={i} product={p} market={market} index={i} />
+        ))}
+      </div>
+    </div>
+  )}
+
+</div>
+      </div>
+    </div>
+  );
+}
