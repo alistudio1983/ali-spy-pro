@@ -213,12 +213,12 @@ export default function App() {
     setStatusMsg('جاري البحث في Google عن منتجات رائجة...');
     const keyToUse = geminiKey || apiKey;
     if (!keyToUse) { setError('يرجى إدخال Gemini API Key'); setLoading(false); return; }
-    const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keyToUse}`;
+    const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${keyToUse}`;
     const today = new Date().toISOString().split('T')[0];
     const cc = market.includes('KSA') ? 'Saudi Arabia' : market.includes('UAE') ? 'UAE' : market.includes('Morocco') ? 'Morocco' : market.includes('Oman') ? 'Oman' : market.includes('Kuwait') ? 'Kuwait' : 'Egypt';
     try {
       setScanStep(1); setStatusMsg('الخطوة 1: البحث في Google عن منتجات رائجة...');
-      const searchPrompt = `Search Google for the top ${productCount} trending and winning dropshipping products in ${cc} for the niche "${niche}" in ${today}. Search Facebook Ads Library for active ads in ${cc}, search AliExpress for product prices, and search Google Trends for trending products. For each product found, provide: the exact product name in Arabic and English, the real AliExpress price, estimated selling price in ${cc}, number of active Facebook ads found, real data sources with URLs. Focus on products that have ACTIVE Facebook/Instagram ads right now and are available on AliExpress.`;
+      const searchPrompt = `You are a professional dropshipping market analyst. Search Google RIGHT NOW for the top ${productCount} trending and winning dropshipping products in ${cc} for the niche "${niche}" in ${today}. Search Facebook Ads Library for active ads in ${cc}, search AliExpress for product prices, and search Google Trends for trending products. For each product found, provide: the exact product name in Arabic and English, the real AliExpress price, estimated selling price in ${cc}, number of active Facebook ads found, real data sources with URLs. Focus on products that have ACTIVE Facebook/Instagram ads right now and are available on AliExpress.`;
       const r1 = await fetch(baseUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: searchPrompt }] }], tools: [{ google_search: {} }] }) });
       if (!r1.ok) throw new Error(await r1.text());
       const d1 = await r1.json();
