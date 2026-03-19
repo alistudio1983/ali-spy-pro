@@ -282,7 +282,7 @@ export default function App() {
 
               <div className="space-y-4">
                 <div>
-                  <l<label className="text-slate-400 text-xs font-bold block mb-2">الدولة</label>
+                  <label className="text-slate-400 text-xs font-bold block mb-2">الدولة</label>
                   <select
                     className="w-full bg-white/10 border border-white/20 text-white rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                     value={market}
