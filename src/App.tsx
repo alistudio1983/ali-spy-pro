@@ -1,409 +1,270 @@
-import React, { useState } from 'react';
-import { Loader2, AlertTriangle, CheckCircle, ExternalLink, TrendingUp, Zap, Globe, Search, Star, BarChart2, DollarSign, Users, ShoppingBag } from 'lucide-react';
+# === patch_ali.py === شغّل هذا الملف في نفس المجلد مع ali.py ===
+import re
 
-const apiKey = "";
+with open('ali.py', 'r', encoding='utf-8') as f:
+    code = f.read()
 
-const getDomain = (url: string) => {
-  try { return new URL(url).hostname.replace('www.', ''); }
-  catch { return url.slice(0, 40); }
-};
+# ══════════════════════════════════════════════════════════════
+# FIX 1: Replace placehold.co with Pollinations.ai (real AI images)
+# ══════════════════════════════════════════════════════════════
+code = code.replace(
+    'return f"https://placehold.co/{width}x{height}/1e40af/white?text={urllib.parse.quote(safe[:30])}"',
+    'return f"https://image.pollinations.ai/prompt/{encoded}?width={width}&height={height}&nologo=true&seed={random.randint(1,99999)}"'
+)
 
-const ProductCard = ({ product, market, index }: any) => {
-  const p = product;
-  const name = p.product_name || 'unknown';
-  const nameEn = p.product_name_en || '';
-  const cat = p.category || 'general';
-  const sat = p.saturation || 'medium';
-  const why = p.why_winning || '';
-  const cost = p.cost_price || 0;
-  const sell = p.selling_price || 0;
-  const margin = p.profit_margin || 0;
-  const fbQ = p.fb_search_query || name;
-  const aliQ = p.aliexpress_query || nameEn || name;
-  const src = p.data_source || '';
-  const verify = p.verification_status || '';
-  const rivals = p.competitor_count || 'N/A';
-  const spend = p.ad_spend_estimate || 'N/A';
-  const audience = p.target_audience || '';
-  const sources = (p.sources || []).filter((s: string) => s && !s.includes('vertexaisearch.cloud.google.com'));
-  const cc = market.includes('KSA') ? 'SA' : market.includes('UAE') ? 'AE' : market.includes('Morocco') ? 'MA' : market.includes('Oman') ? 'OM' : market.includes('Kuwait') ? 'KW' : market.includes('Egypt') ? 'EG' : 'SA';
-  const productLabel = nameEn || aliQ || 'product';
-  const bingImg = `https://tse2.mm.bing.net/th?q=${encodeURIComponent(productLabel + ' product ecommerce')}&w=600&h=400&c=7&rs=1&p=0`;
-  const fallback = `https://placehold.co/600x400/6366f1/ffffff?text=${encodeURIComponent(productLabel)}`;
-  const [imgSrc, setImgSrc] = useState(bingImg);
-  const [imgOk, setImgOk] = useState(false);
+# ══════════════════════════════════════════════════════════════
+# FIX 2: Expand AUTO_COLORS with bg_light, text_dark, card_bg, badge_bg
+# ══════════════════════════════════════════════════════════════
+code = code.replace(
+    '"skincare":  {"primary":"#be185d","secondary":"#fdf2f8","accent":"#f59e0b","gradient1":"#be185d","gradient2":"#ec4899"},',
+    '"skincare":  {"primary":"#be185d","secondary":"#fdf2f8","accent":"#f59e0b","gradient1":"#be185d","gradient2":"#ec4899","bg_light":"#fff5f8","text_dark":"#4a0e2b","card_bg":"#fff0f5","badge_bg":"#fce7f3"},'
+)
+code = code.replace(
+    '"cosmetics": {"primary":"#0f766e","secondary":"#f0fdfa","accent":"#eab308","gradient1":"#0f766e","gradient2":"#14b8a6"},',
+    '"cosmetics": {"primary":"#0f766e","secondary":"#f0fdfa","accent":"#eab308","gradient1":"#0f766e","gradient2":"#14b8a6","bg_light":"#f0fdfa","text_dark":"#064e47","card_bg":"#ecfdf5","badge_bg":"#d1fae5"},'
+)
+code = code.replace(
+    '"health":    {"primary":"#15803d","secondary":"#f0fdf4","accent":"#f97316","gradient1":"#15803d","gradient2":"#22c55e"},',
+    '"health":    {"primary":"#15803d","secondary":"#f0fdf4","accent":"#f97316","gradient1":"#15803d","gradient2":"#22c55e","bg_light":"#f0fdf4","text_dark":"#0a3d1c","card_bg":"#ecfdf5","badge_bg":"#dcfce7"},'
+)
+code = code.replace(
+    '"gadgets":   {"primary":"#1e3a5f","secondary":"#f0f4f8","accent":"#ef4444","gradient1":"#1e3a5f","gradient2":"#3b82f6"},',
+    '"gadgets":   {"primary":"#1e3a5f","secondary":"#f0f4f8","accent":"#ef4444","gradient1":"#1e3a5f","gradient2":"#3b82f6","bg_light":"#eff6ff","text_dark":"#0f1f33","card_bg":"#e8f0fe","badge_bg":"#dbeafe"},'
+)
+code = code.replace(
+    '"fashion":   {"primary":"#7c2d12","secondary":"#fef3c7","accent":"#d97706","gradient1":"#7c2d12","gradient2":"#ea580c"},',
+    '"fashion":   {"primary":"#7c2d12","secondary":"#fef3c7","accent":"#d97706","gradient1":"#7c2d12","gradient2":"#ea580c","bg_light":"#fffbeb","text_dark":"#451a0a","card_bg":"#fef3c7","badge_bg":"#fde68a"},'
+)
+code = code.replace(
+    '"default":   {"primary":"#1e40af","secondary":"#eff6ff","accent":"#f59e0b","gradient1":"#1e40af","gradient2":"#3b82f6"},',
+    '"default":   {"primary":"#1e40af","secondary":"#eff6ff","accent":"#f59e0b","gradient1":"#1e40af","gradient2":"#3b82f6","bg_light":"#eff6ff","text_dark":"#0f1f55","card_bg":"#e8f0fe","badge_bg":"#dbeafe"},'
+)
 
-  const satConfig = sat.includes('Low') || sat.includes('منخفض')
-    ? { bg: 'bg-emerald-500', text: 'text-white', label: sat, icon: '🟢' }
-    : sat.includes('High') || sat.includes('مرتفع')
-    ? { bg: 'bg-red-500', text: 'text-white', label: sat, icon: '🔴' }
-    : { bg: 'bg-amber-500', text: 'text-white', label: sat, icon: '🟡' };
+# ══════════════════════════════════════════════════════════════
+# FIX 3: Update build_lp_html to use new color tokens
+# ══════════════════════════════════════════════════════════════
+code = code.replace(
+    '''    p=colors["primary"]; s=colors["secondary"]; a=colors["accent"]
+    g1=colors["gradient1"]; g2=colors["gradient2"]''',
+    '''    p=colors["primary"]; s=colors["secondary"]; a=colors["accent"]
+    g1=colors["gradient1"]; g2=colors["gradient2"]
+    bg_l=colors.get("bg_light","#f8fafc"); td=colors.get("text_dark","#1a1a2e")
+    card_bg=colors.get("card_bg","#f0f4ff"); badge_bg=colors.get("badge_bg","#e0e7ff")'''
+)
 
-  const gradients = [
-    'from-violet-600 to-indigo-600',
-    'from-rose-500 to-pink-600',
-    'from-emerald-500 to-teal-600',
-    'from-orange-500 to-amber-600',
-    'from-blue-500 to-cyan-600',
-    'from-fuchsia-500 to-purple-600',
-  ];
-  const grad = gradients[index % gradients.length];
+# ══════════════════════════════════════════════════════════════
+# FIX 4: Professional CSS - Replace key CSS blocks
+# ══════════════════════════════════════════════════════════════
 
-  return (
-    <div className="group relative bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-slate-100">
-      {/* Image */}
-      <div className="relative h-56 overflow-hidden bg-slate-100">
-        {!imgOk && (
-          <div className={`absolute inset-0 bg-gradient-to-br ${grad} flex items-center justify-center`}>
-            <Loader2 className="w-10 h-10 text-white animate-spin opacity-60" />
-          </div>
-        )}
-        <img
-          src={imgSrc}
-          alt={name}
-          className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${imgOk ? 'opacity-100' : 'opacity-0'}`}
-          onLoad={() => setImgOk(true)}
-          onError={() => { setImgSrc(fallback); setImgOk(true); }}
-        />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+# Add animations at top of CSS
+code = code.replace(
+    "body{font-family:'Cairo',sans-serif;direction:rtl;text-align:right;color:#333;background:#f8fafc;",
+    "body{font-family:'Cairo',sans-serif;direction:rtl;text-align:right;color:#333;background:{bg_l};"
+)
 
-        {/* Badges */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2">
-          <span className={`${satConfig.bg} ${satConfig.text} text-xs font-bold px-3 py-1 rounded-full shadow-lg`}>
-            {satConfig.icon} {satConfig.label}
-          </span>
-        </div>
-        <div className="absolute top-3 left-3">
-          <span className="bg-white/20 backdrop-blur-sm text-white text-xs font-medium px-3 py-1 rounded-full border border-white/30">
-            {cat}
-          </span>
-        </div>
+# Better topbar with glassmorphism
+code = code.replace(
+    '.topbar{background:{p};',
+    '.topbar{background:linear-gradient(135deg,{td},{p});'
+)
+code = code.replace(
+    ".tb{background:rgba(255,255,255,.15);",
+    ".tb{background:rgba(255,255,255,.2);backdrop-filter:blur(10px);"
+)
 
-        {/* Verify badge */}
-        {verify && (
-          <div className="absolute bottom-3 left-3">
-            <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-              <CheckCircle className="w-3 h-3" /> {verify}
-            </span>
-          </div>
-        )}
+# Animated hero with gradient overlay
+code = code.replace(
+    '.hero{background:linear-gradient(135deg,{p},{g2});',
+    '.hero{background:linear-gradient(160deg,{td} 0%,{p} 50%,{g2} 100%);'
+)
 
-        {/* Number */}
-        <div className={`absolute bottom-3 right-3 w-9 h-9 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center shadow-lg`}>
-          <span className="text-white font-black text-sm">#{index + 1}</span>
-        </div>
-      </div>
+# Floating hero person animation
+code = code.replace(
+    '.hero-person{flex:0 0 260px;max-width:260px;height:380px;object-fit:cover;border-radius:20px;box-shadow:0 15px 50px rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.15);}',
+    '.hero-person{flex:0 0 260px;max-width:260px;height:380px;object-fit:cover;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.15);animation:float 4s ease-in-out infinite;}'
+)
 
-      {/* Content */}
-      <div className="p-5">
-        {/* Title */}
-        <div className="mb-4">
-          <h3 className="text-lg font-black text-slate-800 leading-tight mb-1">{name}</h3>
-          {nameEn && <p className="text-sm text-slate-400 font-medium">{nameEn}</p>}
-        </div>
+# Add animation keyframes after the body CSS rule
+code = code.replace(
+    "img{max-width:100%;height:auto;display:block;}",
+    """img{max-width:100%;height:auto;display:block;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}"""
+)
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="bg-slate-50 rounded-2xl p-3 text-center">
-            <p className="text-xs text-slate-400 mb-1 flex items-center justify-center gap-1"><Users className="w-3 h-3" /> منافسين</p>
-            <p className="font-black text-slate-700 text-sm">{rivals}</p>
-          </div>
-          <div className="bg-slate-50 rounded-2xl p-3 text-center">
-            <p className="text-xs text-slate-400 mb-1 flex items-center justify-center gap-1"><BarChart2 className="w-3 h-3" /> إنفاق إعلاني</p>
-            <p className="font-black text-slate-700 text-sm">{spend}</p>
-          </div>
-        </div>
+# Better section backgrounds using dynamic colors
+code = code.replace(
+    '.sec{padding:50px 0;background:#fff;}',
+    '.sec{padding:60px 0;background:{bg_l};animation:fadeInUp .6s ease;}'
+)
+code = code.replace(
+    '.sec-color{padding:50px 0;background:{s};}',
+    '.sec-color{padding:60px 0;background:{card_bg};}'
+)
+code = code.replace(
+    '.sec-dark{padding:50px 0;background:linear-gradient(135deg,#0f172a,{p});color:#fff;}',
+    '.sec-dark{padding:60px 0;background:linear-gradient(135deg,{td} 0%,{p} 100%);color:#fff;}'
+)
 
-        {/* Pricing */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="text-center bg-blue-50 rounded-2xl p-3">
-            <p className="text-xs text-blue-400 mb-1">سعر المورد</p>
-            <p className="font-black text-blue-700 text-sm">{cost}</p>
-          </div>
-          <div className="text-center bg-violet-50 rounded-2xl p-3">
-            <p className="text-xs text-violet-400 mb-1">سعر البيع</p>
-            <p className="font-black text-violet-700 text-sm">{sell}</p>
-          </div>
-          <div className={`text-center rounded-2xl p-3 bg-gradient-to-br ${grad} bg-opacity-10`}>
-            <p className="text-xs text-emerald-600 mb-1">الربح</p>
-            <p className="font-black text-emerald-700 text-sm">{margin}</p>
-          </div>
-        </div>
+# Better section title with decorative underline
+code = code.replace(
+    '.sec-title{text-align:center;font-size:1.5rem;font-weight:900;margin-bottom:30px;color:inherit;}',
+    '.sec-title{text-align:center;font-size:1.6rem;font-weight:900;margin-bottom:35px;color:inherit;position:relative;padding-bottom:15px;}'
+)
 
-        {/* Why winning */}
-        <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-2xl p-4 mb-4">
-          <p className="text-xs font-black text-slate-500 mb-2 flex items-center gap-1">
-            <Zap className="w-3 h-3 text-amber-500" /> لماذا ينجح؟
-          </p>
-          <p className="text-sm text-slate-700 leading-relaxed">{why}</p>
-        </div>
+# Professional button with shine animation
+code = code.replace(
+    '.btn{display:inline-block;background:{a};color:#fff;padding:16px 40px;border-radius:12px;font-weight:800;font-size:1.1rem;text-align:center;cursor:pointer;transition:all .3s;box-shadow:0 6px 25px {a}44;}',
+    '.btn{display:inline-block;background:linear-gradient(135deg,{a},{p});color:#fff;padding:16px 40px;border-radius:14px;font-weight:800;font-size:1.1rem;text-align:center;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1);box-shadow:0 8px 30px {p}44;position:relative;overflow:hidden;}'
+)
+code = code.replace(
+    '.btn:hover{transform:translateY(-2px);box-shadow:0 10px 35px {a}66;}',
+    '.btn:hover{transform:translateY(-3px);box-shadow:0 12px 40px {p}66;}'
+)
 
-        {/* Audience */}
-        {audience && (
-          <div className="bg-violet-50 rounded-2xl p-3 mb-4">
-            <p className="text-xs font-black text-violet-500 mb-1 flex items-center gap-1">
-              <Users className="w-3 h-3" /> الجمهور المستهدف
-            </p>
-            <p className="text-xs text-violet-700 leading-relaxed">{audience}</p>
-          </div>
-        )}
+# Better cards with hover effects
+code = code.replace(
+    '.feat-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.06);transition:all .3s;}',
+    '.feat-card{background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 6px 25px rgba(0,0,0,.06);transition:all .3s;border:1px solid rgba(0,0,0,.04);}'
+)
+code = code.replace(
+    '.feat-card:hover{transform:translateY(-4px);box-shadow:0 10px 35px rgba(0,0,0,.12);}',
+    '.feat-card:hover{transform:translateY(-5px);box-shadow:0 12px 40px '+'{p}22;}'
+)
 
-        {/* Sources */}
-        {sources.length > 0 && (
-          <div className="mb-4">
-            <p className="text-xs font-bold text-slate-400 mb-2 flex items-center gap-1">
-              <Globe className="w-3 h-3" /> مصادر البيانات
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {sources.slice(0, 4).map((s: string, i: number) => (
-                <a key={i} href={s} target="_blank" rel="noreferrer"
-                  className="text-xs bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 px-2 py-1 rounded-lg flex items-center gap-1 transition-colors">
-                  <ExternalLink className="w-2.5 h-2.5" />{getDomain(s)}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
+code = code.replace(
+    '.ing-card{background:#fff;border-radius:16px;overflow:hidden;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.06);transition:all .3s;}',
+    '.ing-card{background:#fff;border-radius:20px;overflow:hidden;text-align:center;box-shadow:0 6px 25px rgba(0,0,0,.06);transition:all .3s;border:1px solid rgba(0,0,0,.04);}'
+)
 
-        {/* Action buttons */}
-        <div className="grid grid-cols-2 gap-2">
-          <a href={`https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=${cc}&q=${encodeURIComponent(fbQ)}`}
-            target="_blank" rel="noreferrer"
-            className="flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition-all hover:scale-105">
-            <span>إعلانات فيسبوك</span>
-          </a>
-          <a href={`https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(aliQ)}`}
-            target="_blank" rel="noreferrer"
-            className="flex items-center justify-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition-all hover:scale-105">
-            <span>علي إكسبريس</span>
-          </a>
-          <a href={`https://ads.tiktok.com/business/creativecenter/inspiration/topads/pad/en?period=30&region=${cc}&keyword=${encodeURIComponent(fbQ)}`}
-            target="_blank" rel="noreferrer"
-            className="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-black text-white text-xs font-bold py-2.5 px-3 rounded-xl transition-all hover:scale-105">
-            <span>TikTok Ads</span>
-          </a>
-          <a href={`https://trends.google.com/trends/explore?geo=${cc}&q=${encodeURIComponent(aliQ)}`}
-            target="_blank" rel="noreferrer"
-            className="flex items-center justify-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2.5 px-3 rounded-xl transition-all hover:scale-105">
-            <span>Google Trends</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-};
+# Better FAQ with accordion style
+code = code.replace(
+    '.faq-item{border-bottom:1px solid #e5e7eb;padding:15px 0;}',
+    '.faq-item{border:1px solid rgba(0,0,0,.06);border-radius:14px;margin-bottom:10px;overflow:hidden;transition:all .3s;background:#fff;}'
+)
+code = code.replace(
+    '.faq-item summary{font-weight:700;cursor:pointer;color:{p};font-size:.95rem;list-style:none;}',
+    '.faq-item summary{font-weight:700;cursor:pointer;color:{p};font-size:.95rem;list-style:none;padding:16px 20px;transition:background .3s;}'
+)
+code = code.replace(
+    '.faq-item p{padding:10px 0 0;color:#555;font-size:.88rem;line-height:1.6;}',
+    '.faq-item p{padding:14px 20px;color:#555;font-size:.88rem;line-height:1.7;}'
+)
 
-export default function App() {
-  const [market, setMarket] = useState('المملكة العربية السعودية (KSA)');
-  const [niche, setNiche] = useState('منتجات حل المشاكل اليومية');
-  const [productCount, setProductCount] = useState(4);
-  const [geminiKey, setGeminiKey] = useState(localStorage.getItem('geminiKey') || '');
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState([]);
-  const [error, setError] = useState('');
-  const [scanStep, setScanStep] = useState(0);
-  const [statusMsg, setStatusMsg] = useState('');
+# Better pricing box
+code = code.replace(
+    '.price-box{text-align:center;background:linear-gradient(135deg,{s},#fff);padding:35px 20px;border-radius:20px;max-width:420px;margin:0 auto;box-shadow:0 10px 35px rgba(0,0,0,.1);border:2px solid {p}22;}',
+    '.price-box{text-align:center;background:linear-gradient(135deg,#fff,{badge_bg});padding:40px 24px;border-radius:24px;max-width:440px;margin:0 auto;box-shadow:0 12px 45px rgba(0,0,0,.1);border:2px solid {p}15;position:relative;overflow:hidden;}'
+)
 
-  const markets = ['المملكة العربية السعودية (KSA)', 'الإمارات (UAE)', 'المغرب (Morocco)', 'سلطنة عمان (Oman)', 'الكويت (Kuwait)', 'مصر (Egypt)'];
-  const niches = ['منتجات حل المشاكل اليومية', 'مستحضرات التجميل والعناية بالبشرة', 'أدوات المطبخ والمنزل الذكية', 'اكسسوارات السيارات', 'منتجات الصحة والراحة', 'منتجات الأطفال'];
+# Pulsing discount tag
+code = code.replace(
+    '.dtag{background:#ef4444;color:#fff;padding:5px 18px;border-radius:20px;font-size:.88rem;font-weight:700;display:inline-block;}',
+    '.dtag{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:6px 20px;border-radius:20px;font-size:.88rem;font-weight:700;display:inline-block;animation:pulse 2s infinite;}'
+)
 
-  const scanMarket = async () => {
-    setLoading(true); setError(''); setResults([]); setScanStep(1);
-    setStatusMsg('جاري البحث في Google عن منتجات رائجة...');
-    const keyToUse = geminiKey || apiKey;
-    if (!keyToUse) { setError('يرجى إدخال Gemini API Key'); setLoading(false); return; }
-    const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${keyToUse}`;
-    const today = new Date().toISOString().split('T')[0];
-    const cc = market.includes('KSA') ? 'Saudi Arabia' : market.includes('UAE') ? 'UAE' : market.includes('Morocco') ? 'Morocco' : market.includes('Oman') ? 'Oman' : market.includes('Kuwait') ? 'Kuwait' : 'Egypt';
-    try {
-      setScanStep(1); setStatusMsg('الخطوة 1: البحث في Google عن منتجات رائجة...');
-      const searchPrompt = `You are a professional dropshipping market analyst. Search Google RIGHT NOW for the top ${productCount} trending and winning dropshipping products in ${cc} for the niche "${niche}" in ${today}. Search Facebook Ads Library for active ads in ${cc}, search AliExpress for product prices, and search Google Trends for trending products. For each product found, provide: the exact product name in Arabic and English, the real AliExpress price, estimated selling price in ${cc}, number of active Facebook ads found, real data sources with URLs. Focus on products that have ACTIVE Facebook/Instagram ads right now and are available on AliExpress.`;
-      const r1 = await fetch(baseUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: searchPrompt }] }], tools: [{ google_search: {} }] }) });
-      if (!r1.ok) throw new Error(await r1.text());
-      const d1 = await r1.json();
-      const rawText = (d1.candidates && d1.candidates[0] && d1.candidates[0].content && d1.candidates[0].content.parts?.map((p: any) => p.text || '').join('')) || '';
-      const gMeta = d1.candidates && d1.candidates[0] && d1.candidates[0].groundingMetadata;
-      const gChunks = (gMeta && gMeta.groundingChunks) ? gMeta.groundingChunks : [];
-      const cleanSources = gChunks.map((c: any) => c.web && c.web.uri ? c.web.uri : '').filter((u: string) => u && !u.includes('vertexaisearch'));
-      setScanStep(2); setStatusMsg('الخطوة 2: تحليل وتحويل البيانات...');
-      const p2 = `Convert this research into JSON. Data: ` + rawText.slice(0, 8000) + ` \nReturn ONLY: {"products":[...]} each with: product_name(Arabic), product_name_en(English), category(Arabic), why_winning(Arabic 2 sentences), cost_price(string like "$5-$10"), selling_price(string), profit_margin(string), saturation(Arabic: منخفض/متوسط/مرتفع), fb_search_query, aliexpress_query(English), data_source, verification_status("تم التحقق عبر Google"), competitor_count, ad_spend_estimate, target_audience(Arabic), sources(array of URLs). No text outside JSON.`;
-      const r2 = await fetch(baseUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: p2 }] }], generationConfig: { responseMimeType: 'application/json' } }) });
-      if (!r2.ok) throw new Error(await r2.text());
-      const d2 = await r2.json();
-      let txt = (d2.candidates && d2.candidates[0] && d2.candidates[0].content && d2.candidates[0].content.parts?.map((p: any) => p.text || '').join('')) || '';
-      txt = txt.replace(/```json/gi, '').replace(/```/g, '').trim();
-      const parsed = JSON.parse(txt);
-      let arr = parsed.products || parsed;
-      if (!Array.isArray(arr)) throw new Error('Invalid JSON');
-      arr = arr.map((item: any) => { const s2 = (item.sources || []).filter((s: string) => !s.includes('vertexaisearch')); return { ...item, sources: [...s2, ...cleanSources.slice(0, 3)].filter((v: string, i: number, a: string[]) => a.indexOf(v) === i) }; });
-      setScanStep(3); setStatusMsg(`تم العثور على ${arr.length} منتجات`);
-      setResults(arr);
-    } catch (e: any) { setError(e.message || 'خطأ غير متوقع'); }
-    setLoading(false);
-  };
+# Better guarantee box
+code = code.replace(
+    '.gbox{text-align:center;background:#f0fdf4;border:2px solid #22c55e;border-radius:18px;padding:28px;max-width:500px;margin:0 auto;}',
+    '.gbox{text-align:center;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #22c55e;border-radius:24px;padding:32px;max-width:500px;margin:0 auto;box-shadow:0 8px 30px rgba(34,197,94,.1);}'
+)
 
-  const steps = ['بحث Google', 'تحليل', 'نتائج'];
+# Better final CTA
+code = code.replace(
+    '.final{background:linear-gradient(135deg,{g1},{g2});padding:50px 15px;text-align:center;color:#fff;}',
+    '.final{background:linear-gradient(135deg,{g1},{p},{g2});padding:60px 15px;text-align:center;color:#fff;position:relative;overflow:hidden;}'
+)
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900" dir="rtl">
+# Better doctor cards
+code = code.replace(
+    '.doc-card{display:flex;gap:18px;background:#fff;border-radius:16px;padding:22px;box-shadow:0 6px 25px rgba(0,0,0,.06);',
+    '.doc-card{display:flex;gap:20px;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-radius:20px;padding:24px;box-shadow:0 8px 30px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.04);'
+)
 
-      {/* Animated background blobs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-violet-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-rose-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse" style={{ animationDelay: '4s' }} />
-      </div>
+# Better review cards
+code = code.replace(
+    '.rev-card{background:rgba(255,255,255,.06);border-radius:16px;padding:22px;text-align:center;',
+    '.rev-card{background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border-radius:20px;padding:24px;text-align:center;border:1px solid rgba(255,255,255,.1);transition:all .3s;'
+)
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
+# Better trust badges with hover
+code = code.replace(
+    '.trust-badge{background:rgba(255,255,255,.1);color:#fff;padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:600;}',
+    '.trust-badge{background:rgba(255,255,255,.12);backdrop-filter:blur(8px);color:#fff;padding:5px 14px;border-radius:20px;font-size:.78rem;font-weight:600;border:1px solid rgba(255,255,255,.1);transition:all .3s ease;}'
+)
 
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-xs font-bold px-4 py-2 rounded-full mb-4">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-            مدعوم بـ Gemini 2.0 Flash + Google Search
-          </div>
-          <h1 className="text-5xl font-black text-white mb-3 tracking-tight">
-            <span className="inline-flex items-center gap-3"><svg width="48" height="48" viewBox="0 0 100 100" className="drop-shadow-lg"><defs><linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a78bfa"/><stop offset="100%" stopColor="#6366f1"/></linearGradient></defs><circle cx="50" cy="50" r="46" fill="url(#lg1)" opacity="0.15"/><circle cx="50" cy="50" r="35" fill="none" stroke="url(#lg1)" strokeWidth="2" opacity="0.4"/><circle cx="50" cy="50" r="24" fill="none" stroke="url(#lg1)" strokeWidth="2" opacity="0.6"/><circle cx="50" cy="50" r="13" fill="none" stroke="url(#lg1)" strokeWidth="2" opacity="0.8"/><circle cx="50" cy="50" r="4" fill="#a78bfa"/><line x1="50" y1="50" x2="75" y2="30" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round"/><circle cx="75" cy="30" r="5" fill="#f59e0b" className="animate-pulse"/></svg><span>ALI</span></span> <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">Spy Pro</span>
-            <span className="ml-3 text-2xl bg-gradient-to-r from-amber-400 to-orange-400 text-transparent bg-clip-text">V9.0</span>
-          </h1>
-          <p className="text-slate-400 text-lg">بيانات حقيقية من Google Search + Facebook Ads + AliExpress</p>
-        </div>
+# ══════════════════════════════════════════════════════════════
+# FIX 5: Improved YouCan JSON export with images + SEO
+# ══════════════════════════════════════════════════════════════
+code = code.replace(
+    '''def generate_youcan_json(html):
+    """Wrap HTML in YouCan-compatible page JSON format"""
+    import json as _json
+    yc_html = get_youcan_html(html)
+    page_json = {
+        "sections": [
+            {
+                "id": "custom_html_1",
+                "type": "custom_html",
+                "settings": {
+                    "html": yc_html
+                }
+            }
+        ]
+    }
+    return _json.dumps(page_json, ensure_ascii=False, indent=2)''',
+    '''def generate_youcan_json(html, data=None, image_map=None):
+    """Export full YouCan-compatible JSON with images, SEO, and page metadata"""
+    import json as _json
+    yc_html = get_youcan_html(html)
+    images = []
+    if image_map:
+        for key, val in image_map.items():
+            images.append({"id": key, "src": val, "alt": key.replace("IMG_","").replace("_"," ").lower()})
+    page_json = {
+        "page": {
+            "title": data.get('hero_headline', 'Landing Page') if data else 'Landing Page',
+            "meta_description": data.get('hero_subheadline', '') if data else '',
+            "slug": "landing-page"
+        },
+        "sections": [
+            {
+                "id": "custom_landing_page",
+                "type": "custom_html",
+                "settings": {
+                    "html": yc_html,
+                    "full_width": True
+                }
+            }
+        ],
+        "images": images,
+        "seo": {
+            "title": data.get('hero_headline', '') if data else '',
+            "description": data.get('hero_subheadline', '') if data else ''
+        }
+    }
+    return _json.dumps(page_json, ensure_ascii=False, indent=2)'''
+)
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+# ══════════════════════════════════════════════════════════════
+# FIX 6: Update YouCan JSON calls to pass data + images
+# ══════════════════════════════════════════════════════════════
+code = code.replace(
+    'st.download_button("\U0001f4e5 \u062a\u062d\u0645\u064a\u0644 YouCan JSON", generate_youcan_json(src), "youcan_page.lp", "application/json", key="yc_json_dl")',
+    'st.download_button("\U0001f4e5 \u062a\u062d\u0645\u064a\u0644 YouCan JSON", generate_youcan_json(src, data=st.session_state.get(\'lp_data\'), image_map=st.session_state.get(\'lp_ai_images\')), "youcan_page.lp", "application/json", key="yc_json_dl")'
+)
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sticky top-6">
-              <h2 className="text-white font-black text-lg mb-5 flex items-center gap-2">
-                <Search className="w-5 h-5 text-violet-400" />
-                فلاتر البحث
-              </h2>
+# ══════════════════════════════════════════════════════════════
+# SAVE
+# ══════════════════════════════════════════════════════════════
+with open('ali.py', 'w', encoding='utf-8') as f:
+    f.write(code)
 
-              <div className="space-y-4">
-                <div>
-                  <label className="text-slate-400 text-xs font-bold block mb-2">الدولة</label>
-                  <select
-                    className="w-full bg-white/10 border border-white/20 text-white rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                    value={market}
-                    onChange={e => setMarket(e.target.value)}
-                  >
-                    {markets.map(
-              m => <option key={m} value={m}>{m}</option>
-            )}
-          </select>
-        </div>
-
-        <div>
-          <label className="text-slate-400 text-xs font-bold block mb-2">المجال</label>
-          <select
-            className="w-full bg-white/10 border border-white/20 text-white rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-            value={niche}
-            onChange={e => setNiche(e.target.value)}
-          >
-            {niches.map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label className="text-slate-400 text-xs font-bold block mb-2">
-            عدد المنتجات: <span className="text-violet-400 font-black">{productCount}</span>
-          </label>
-          <input type="range" min={1} max={10} value={productCount}
-            onChange={e => setProductCount(+e.target.value)}
-            className="w-full accent-violet-500" />
-        </div>
-
-        <div>
-          <label className="text-slate-400 text-xs font-bold block mb-2">Gemini API Key</label>
-          <input type="password"
-            className="w-full bg-white/10 border border-white/20 text-white rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 placeholder-slate-500"
-            placeholder="AIza..."
-            value={geminiKey}
-            onChange={e => { setGeminiKey(e.target.value); localStorage.setItem('geminiKey', e.target.value); }}
-          />
-        </div>
-
-        <button
-          onClick={scanMarket}
-          disabled={loading}
-          className="w-full py-4 rounded-2xl font-black text-white text-base bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 hover:shadow-xl hover:shadow-violet-500/30 flex items-center justify-center gap-2"
-        >
-          {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> جاري البحث...</> : <><Zap className="w-5 h-5" /> مسح السوق الآن</>}
-        </button>
-
-        <p className="text-slate-500 text-xs text-center">Gemini 2.0 Flash + Google Search</p>
-      </div>
-    </div>
-  </div>
-
-  {/* Loading steps */}
-  {loading && (
-    <div className="lg:col-span-3">
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8">
-        <div className="flex items-center justify-center gap-6 mb-6">
-          {steps.map((s, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${i < scanStep ? 'bg-emerald-500 text-white' : i === scanStep - 1 ? 'bg-violet-500 text-white animate-pulse' : 'bg-white/10 text-slate-400'}`}>
-                {i < scanStep ? <CheckCircle className="w-4 h-4" /> : i + 1}
-              </div>
-              <span className="text-slate-300 text-sm font-medium">{s}</span>
-              {i < steps.length - 1 && <div className="w-8 h-px bg-white/20" />}
-            </div>
-          ))}
-        </div>
-        {statusMsg && (
-          <p className="text-center text-violet-300 text-sm font-medium animate-pulse">{statusMsg}</p>
-        )}
-      </div>
-    </div>
-  )}
-
-  {/* Error */}
-  {error && (
-    <div className="lg:col-span-3">
-      <div className="bg-red-500/10 border border-red-500/30 rounded-3xl p-6 flex items-center gap-3">
-        <AlertTriangle className="w-6 h-6 text-red-400 flex-shrink-0" />
-        <p className="text-red-300 text-sm">{error}</p>
-      </div>
-    </div>
-  )}
-
-  {/* Empty state */}
-  {!loading && !results.length && !error && (
-    <div className="lg:col-span-3">
-      <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-16 text-center">
-        <div className="w-20 h-20 rounded-full bg-violet-500/20 flex items-center justify-center mx-auto mb-6">
-          <Search className="w-10 h-10 text-violet-400" />
-        </div>
-        <h3 className="text-white font-black text-2xl mb-3">الرادار جاهز</h3>
-        <p className="text-slate-400 text-base">اختر السوق والمجال واضغط مسح السوق الآن</p>
-      </div>
-    </div>
-  )}
-
-  {/* Results */}
-  {results.length > 0 && (
-    <div className="lg:col-span-3">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-white font-black text-xl flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-violet-400" />
-          المنتجات المكتشفة ({results.length})
-        </h2>
-        <span className="bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
-          <CheckCircle className="w-3 h-3" /> بيانات Google حقيقية
-        </span>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {results.map((p: any, i: number) => (
-          <ProductCard key={i} product={p} market={market} index={i} />
-        ))}
-      </div>
-    </div>
-  )}
-
-</div>
-      </div>
-    </div>
-  );
-}
+print("\u2705 Done! ali.py has been patched successfully.")
+print("Changes applied:")
+print("  1. Real AI images via Pollinations.ai (no more placeholders)")
+print("  2. Extended color palettes per product category")
+print("  3. Professional CSS with animations, glassmorphism, hover effects")
+print("  4. Enhanced YouCan JSON export with images + SEO metadata")
+print("  5. Deep Research & Calculator sections: UNCHANGED")
